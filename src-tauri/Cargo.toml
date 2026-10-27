@@ -1,6 +1,6 @@
 [package]
 name = "open-template"
-version = "0.1.0"
+version = "0.1.1"
 description = "A local specification-driven coding workspace"
 authors = ["open-template"]
 license = "GPL-3.0-only"

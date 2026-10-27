@@ -1,13 +1,16 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "open-template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.opentemplate.app",
   "build": {
     "frontendDist": "splash",
     "beforeDevCommand": "node scripts/prepare-desktop.mjs --dev",
     "beforeBuildCommand": "node scripts/prepare-desktop.mjs",
-    "additionalWatchFolders": ["../server", "../shared"]
+    "additionalWatchFolders": [
+      "../server",
+      "../shared"
+    ]
   },
   "app": {
     "windows": [],
@@ -20,10 +23,25 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "externalBin": ["binaries/node"],
-    "resources": {"runtime/": "runtime/"},
-    "icon": ["icons/icon.png", "icons/icon.ico"],
-    "macOS": {"minimumSystemVersion": "13.0", "entitlements": "./Entitlements.plist"},
-    "windows": {"webviewInstallMode": {"type": "downloadBootstrapper", "silent": true}}
+    "externalBin": [
+      "binaries/node"
+    ],
+    "resources": {
+      "runtime/": "runtime/"
+    },
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "entitlements": "./Entitlements.plist"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      }
+    }
   }
 }
