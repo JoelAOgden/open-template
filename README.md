@@ -41,6 +41,8 @@ Build an installer with `npm run desktop:build` on the target OS and architectur
 
 ## GitHub releases
 
+Only updates to `release` trigger GitHub Actions. PRs and pushes to other branches do not run validation checks. Run the checks above locally before merging.
+
 Target release PRs at `release`. Include a new application version in each release PR:
 
 ```sh
@@ -48,7 +50,7 @@ npm run release:version -- 0.1.0
 # Commit the version changes, then open and merge a PR into release.
 ```
 
-Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build, tests all targets, and publishes downloads with checksums and a `v<version>` tag after every build passes. Apple Silicon/Intel macOS and Windows x64 are built separately.
+Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build and publishes downloads with checksums and a `v<version>` tag after every build succeeds. Apple Silicon/Intel macOS and Windows x64 are built separately. Automated tests, type checking and architecture checks are not run; version and snapshot integrity safeguards remain enforced.
 
 Snapshot branches have no deployment trigger: creating or pushing `releases/*` or tags does not publish anything. Existing version branches are never overwritten by the workflow. Retry a failed run in Actions; use a new version for subsequent merges. Versions such as `0.2.0-beta.1` create prereleases. GitHub's automatic token is used; no personal access token is needed.
 
