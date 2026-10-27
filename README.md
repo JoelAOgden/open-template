@@ -11,7 +11,16 @@ Open this repository's **Releases** page on GitHub, choose a release, and expand
 - **macOS:** download `macos-arm64.dmg` for Apple Silicon or `macos-x64.dmg` for Intel. Open the DMG, drag **open-template** into **Applications**, then launch it.
 - **Windows — untested:** download `windows-x64.exe` or `windows-x64.msi`, run the installer, and launch **open-template** from the Start menu. Windows builds are provided for testing; installation and runtime behavior have not been verified on a real Windows machine. Claude's required sandbox currently prevents native Windows execution.
 
-**macOS verification warning:** these previews are not notarized by Apple. If macOS says Apple could not verify open-template, and you trust the release you downloaded, try opening the app, then go to **System Settings → Privacy & Security → Open Anyway** and confirm. See [Apple’s instructions](https://support.apple.com/en-gb/102445).
+**If macOS blocks the app:** these previews are not notarized by Apple. If you trust the release you downloaded:
+
+1. Try opening **open-template** from Applications.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll down to the **Security** section.
+4. Beside the message **“open-template” was blocked to protect your Mac**, click **Open Anyway**, then confirm.
+
+![The Security section showing the Open Anyway button beside the blocked open-template message](readme-img/security-open-anyway.png)
+
+See [Apple’s instructions](https://support.apple.com/en-gb/102445).
 
 Installers include Node and the provider CLI tools. Choose a provider in **Settings** and sign in. These preview releases are not developer-signed or notarized, so your operating system may warn or block installation. If no release is listed yet, use the development setup below.
 
