@@ -10,7 +10,7 @@ src-tauri/binaries/*
 .project-ide/
 .project-studio/
 .studio-local/
-projects/
+/projects/
 project_src/
 
 # Local IDE settings (keep on disk, exclude from the public repository)
