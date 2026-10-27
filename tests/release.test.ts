@@ -27,6 +27,24 @@ test('release version command synchronizes manifests and rejects mismatching tag
   assert.equal(lock.packages[''].version, '1.2.3-beta.1');
   assert.equal(lock.packages['node_modules/react'].version, JSON.parse(await fs.readFile('package-lock.json', 'utf8')).packages['node_modules/react'].version);
 });
+for (const eol of ['\n', '\r\n']) test(`release version supports ${eol === '\n' ? 'LF' : 'CRLF'} Cargo files without changing other bytes`, async t => {
+  const root = await fixture(t);
+  const version = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8')).version;
+  const cargoFiles = ['src-tauri/Cargo.toml', 'src-tauri/Cargo.lock'];
+  const originals = await Promise.all(cargoFiles.map(async file => {
+    const content = (await fs.readFile(path.join(root, file), 'utf8')).replace(/\r?\n/g, eol);
+    await fs.writeFile(path.join(root, file), content);
+    return content;
+  }));
+  await exec(process.execPath, [versionScript, 'check', `v${version}`], { cwd: root });
+  await exec(process.execPath, [versionScript, 'set', '9.8.7'], { cwd: root });
+  await exec(process.execPath, [versionScript, 'check', 'v9.8.7'], { cwd: root });
+  for (const [i, file] of cargoFiles.entries()) {
+    const updated = await fs.readFile(path.join(root, file), 'utf8');
+    assert.notEqual(updated, originals[i]);
+    assert.equal(updated.replace('version = "9.8.7"', `version = "${version}"`), originals[i]);
+  }
+});
 test('release collection requires installers and copies only platform downloads', { skip: !['darwin', 'win32'].includes(process.platform) }, async t => {
   const root = await fixture(t);
   const bundle = path.join(root, 'src-tauri/target/release/bundle');

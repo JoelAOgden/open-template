@@ -18,7 +18,7 @@ const updates = contents.map((content, index) => {
     if (index === 1) data.packages[''].version = version;
     next = JSON.stringify(data, null, 2) + '\n';
   } else {
-    const pattern = index === 3 ? /(\[package\][\s\S]*?\nversion = ")([^"]+)(")/ : /(\[\[package\]\]\nname = "open-template"\nversion = ")([^"]+)(")/;
+    const pattern = index === 3 ? /(\[package\][\s\S]*?\r?\nversion = ")([^"]+)(")/ : /(\[\[package\]\]\r?\nname = "open-template"\r?\nversion = ")([^"]+)(")/;
     current = content.match(pattern)?.[2];
     if (!current) throw new Error(`Cannot find app version in ${files[index]}`);
     next = content.replace(pattern, (_match, prefix, _old, suffix) => `${prefix}${version}${suffix}`);
