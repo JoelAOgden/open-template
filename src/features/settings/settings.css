@@ -1,0 +1,38 @@
+.settings-dialog {
+  margin: auto;
+  width: min(420px, calc(100vw - 32px));
+  color: inherit;
+}
+
+.settings-dialog::backdrop {
+  background: var(--palette-35);
+}
+
+.settings-dialog fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-px-16);
+}
+
+.settings-note {
+  color: var(--muted);
+  font-size: var(--font-size-12);
+}
+
+.settings-dialog .actions {
+  justify-content: flex-end;
+  margin-top: var(--space-px-20);
+}
+
+.settings-rebuild {
+  border-top: 1px solid var(--line);
+  margin-top: var(--space-px-24);
+  padding-top: var(--space-px-20);
+}
+
+.settings-project-actions {
+  display: flex;
+  gap: var(--space-px-8);
+}

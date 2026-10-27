@@ -1,0 +1,275 @@
+.workshop { border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: var(--palette-52); }
+.workshop-scene { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 24px; min-height: 360px; padding: 40px 40px 54px; isolation: isolate; }
+.workshop-builder { width: 250px; flex-shrink: 0; color: var(--robot-color); z-index: 2; animation: workshop-arrive .45s ease-out; }
+.workshop-bubble { position: relative; padding: 17px 20px; border: 1px solid var(--palette-53); border-radius: 18px 18px 18px 4px; background: var(--palette-54); color: var(--text); margin-bottom: 8px; min-height: 82px; }
+.workshop-bubble::after { content: ''; position: absolute; bottom: -7px; left: 39px; width: 12px; height: 12px; background: var(--palette-54); border-right: 1px solid var(--palette-53); border-bottom: 1px solid var(--palette-53); transform: rotate(45deg); }
+.workshop-bubble small { color: var(--robot-color); font-size: 10px; letter-spacing: .02em; }
+.workshop-bubble p { font-size: 14px; line-height: 1.6; margin: 7px 0 0; overflow-wrap: anywhere; }
+.workshop-worker { width: 150px; margin: 0 auto; }
+.workshop-robot { display: block; width: 100%; color: var(--robot-color); overflow: visible; }
+.workshop-worker[data-working="true"] .robot-body { animation: workshop-bob 2.8s ease-in-out infinite; }
+.workshop-worker[data-working="true"] .robot-arm { transform-origin: 111px 108px; animation: workshop-tinker 1.8s ease-in-out infinite; }
+.workshop-worker[data-working="true"] .robot-antenna { animation: workshop-light 2.8s ease-in-out infinite; }
+.workshop-app { position: relative; width: 380px; margin-bottom: 35px; border: 1px solid var(--palette-55); border-radius: 13px; background: var(--palette-56); transform: rotate(-2deg); box-shadow: 12px 15px 0 var(--palette-57); z-index: 1; }
+.workshop-app-top { display: flex; align-items: center; gap: 5px; height: 37px; padding: 0 14px; border-bottom: 1px solid var(--palette-58); }
+.workshop-app-top > span { width: 5px; height: 5px; border-radius: 50%; background: var(--palette-59); }
+.workshop-app-top small { margin-left: auto; color: var(--palette-60); font-size: 10px; }
+.workshop-app-content { display: flex; min-height: 190px; }
+.workshop-app-nav { width: 51px; padding: 22px 15px; border-right: 1px solid var(--palette-61); display: flex; flex-direction: column; gap: 14px; }
+.workshop-app-nav i { width: 18px; height: 5px; background: var(--palette-62); border-radius: 3px; }
+.workshop-app-nav i:first-child { background: var(--palette-7); }
+.workshop-app-page { flex: 1; padding: 25px 22px; }
+.workshop-app-title { width: 60%; height: 9px; background: var(--palette-63); border-radius: 3px; }
+.workshop-app-subtitle { width: 80%; height: 5px; background: var(--palette-64); margin-top: 10px; border-radius: 2px; }
+.workshop-app-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.workshop-app-tiles > div { padding: 10px; border: 1px dashed var(--palette-65); border-radius: 7px; min-height: 49px; transition: background .5s, border-color .5s; }
+.workshop-app-tiles > .built { background: var(--palette-66); border: 1px solid var(--palette-67); }
+.workshop-app-tiles span { display: block; width: 16px; height: 10px; border-radius: 3px; background: var(--palette-68); }
+.workshop-app-tiles .built span { background: var(--palette-8); }
+.workshop-app-tiles i { display: block; width: 75%; height: 3px; background: var(--palette-69); margin-top: 6px; }
+.workshop-app-stamp { position: absolute; display: flex; gap: 7px; align-items: center; right: -14px; bottom: -17px; background: var(--palette-70); border: 1px solid var(--palette-67); color: var(--palette-71); padding: 10px 14px; border-radius: 9px; font-size: 12px; transform: rotate(2deg); }
+.workshop-app-stamp.attention { background: var(--palette-72); border-color: var(--palette-73); color: var(--palette-74); }
+.workshop-bench { position: absolute; bottom: 57px; left: 12%; right: 8%; height: 12px; border: 1px solid var(--palette-75); border-radius: 4px; background: var(--palette-76); z-index: -1; }
+.workshop-bench::before, .workshop-bench::after { content: ''; position: absolute; top: 11px; width: 9px; height: 26px; background: var(--palette-76); }
+.workshop-bench::before { left: 20px; } .workshop-bench::after { right: 20px; }
+.workshop-team { padding: 20px 24px 24px; background: var(--palette-77); border-top: 1px solid var(--line); }
+.workshop-progress { display: flex; align-items: center; gap: 20px; color: var(--muted); font-size: 11px; }
+.workshop-progress span { white-space: nowrap; }
+.workshop-progress progress { flex: 1; }
+.workshop-team ol { display: flex; gap: 8px; padding: 0; margin: 18px 0 0; list-style: none; overflow-x: auto; }
+.workshop-team li { flex: 1 0 120px; max-width: 220px; }
+.workshop-team button { width: 100%; justify-content: flex-start; padding: 8px; border-color: transparent; border-radius: 10px; text-align: left; }
+.workshop-team [data-state="working"] button { background: var(--palette-78); border-color: var(--palette-79); }
+.workshop-team [data-state="waiting"] .workshop-avatar { opacity: .45; }
+.workshop-avatar { display: block; position: relative; width: 38px; flex-shrink: 0; }
+.workshop-done { position: absolute; bottom: 0; right: -1px; color: var(--palette-80); background: var(--palette-81); border-radius: 50%; padding: 2px; box-sizing: content-box; }
+.workshop-member { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.workshop-member strong { font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+.workshop-member small { color: var(--muted); font-size: 10px; }
+.workshop-next { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.workshop-next p { font-size: 13px; color: var(--muted); }
+.workshop-next button { padding: 10px 20px; white-space: nowrap; }
+
+
+
+
+
+
+
+
+
+.workshop[data-status="dismissed"] .workshop-app { opacity: .5; }
+@keyframes workshop-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes workshop-tinker { 0%,60%,100% { transform: rotate(0); } 20%,40% { transform: rotate(-12deg); } 30%,50% { transform: rotate(6deg); } }
+@keyframes workshop-light { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes workshop-arrive { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .workshop *, .workshop *::before, .workshop *::after { animation: none !important; transition: none !important; } }
+@media (max-width: 700px) {
+ .workshop-scene { gap: 12px; padding: 24px 20px 48px; min-height: 340px; }
+ .workshop-builder { width: 48%; }
+ .workshop-bubble { padding: 12px; min-height: 100px; }
+ .workshop-bubble p { font-size: 12px; }
+ .workshop-worker { width: 120px; max-width: 100%; }
+ .workshop-app { width: 48%; margin-bottom: 22px; }
+ .workshop-app-nav { display: none; }
+ .workshop-app-page { padding: 18px 12px; }
+ .workshop-app-tiles { gap: 7px; }
+ .workshop-app-tiles > div { padding: 6px; }
+ .workshop-app-stamp { right: -4px; padding: 7px; font-size: 10px; }
+ .workshop-team { padding: 16px; }
+ .workshop-next { align-items: flex-start; flex-direction: column; gap: 0; }
+}
+@media (max-width: 420px) { .workshop-scene { flex-direction: column; align-items: center; } .workshop-builder { width: 100%; display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; } .workshop-bubble { flex: 1; margin: 0; } .workshop-worker { width: 90px; } .workshop-app { width: 90%; margin: 10px 0 20px; } }
+
+.robot-notebook { scroll-margin-top: 24px; }
+.robot-notes-heading { display: flex; align-items: center; gap: 9px; color: var(--muted); margin: 8px 0 16px; }
+.robot-notes-heading h2 { margin: 0; font-size: 13px; font-weight: 500; }
+.robot-notes-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 16px; align-items: start; }
+.robot-note { --note-color: var(--palette-74); background: var(--palette-82); border: 1px solid var(--palette-83); border-top: 3px solid var(--note-color); border-radius: 3px 3px 12px 12px; padding: 18px 20px; min-width: 0; }
+.robot-note header { display: flex; align-items: center; gap: 8px; color: var(--note-color); font-size: 12px; flex-wrap: wrap; }
+.robot-note header strong { font-weight: 500; }
+.robot-note header span { margin-left: auto; color: var(--muted); font-size: 11px; }
+.robot-note p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; margin: 14px 0 0; }
+.robot-note-preview { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.robot-note > button { margin-top: 12px; }
+.robot-note[data-warning="true"] { border-top-color: var(--palette-74); background: var(--palette-84); }
+.robot-notes-caption { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 0 0 16px; }
+.robot-notebook > .actions { margin-top: 20px; }
+.robot-reply textarea { margin: 16px 0 6px; background: var(--palette-85); }
+.robot-reply label { font-size: 12px; color: var(--muted); }
+
+/* Step inside the robot's room. Props are playful, never execution controls. */
+.robot-room { border-radius: 22px; }
+.robot-room .workshop-scene { display: block; min-height: 560px; padding: 0; background: radial-gradient(ellipse at 52% 80%,var(--palette-86),transparent 65%), var(--palette-87); overflow: hidden; }
+.room-topline { position: absolute; inset: 18px 24px auto; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
+.room-topline > span { color: var(--palette-88); font-size: 11px; display: flex; align-items: center; gap: 8px; letter-spacing: .03em; }
+.room-topline i { width: 5px; height: 5px; border-radius: 50%; background: var(--palette-89); }
+.room-light { pointer-events: none; position: absolute; top: 48px; right: 4%; width: 380px; height: 400px; background: linear-gradient(150deg,var(--palette-90),transparent 70%); clip-path: polygon(73% 0,89% 0,100% 100%,0 100%); transition: opacity .3s; }
+.room-pegboard { position: absolute; top: 112px; left: 5%; width: 143px; padding: 18px 12px 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border: 1px solid var(--palette-91); border-radius: 10px; box-shadow: 0 6px 0 var(--palette-92); background: radial-gradient(circle,var(--palette-93) 1px,transparent 1.5px) 0 0/12px 12px,var(--palette-94); transform: rotate(-3deg); }
+.room-pegboard > span { width: 100%; font-size: 8px; letter-spacing: .14em; color: var(--palette-95); margin-bottom: 9px; text-align: center; }
+.room-pegboard button { padding: 8px; color: var(--palette-96); background: var(--palette-97); border-radius: 9px; border: 1px solid var(--palette-98); transition: transform .15s; }
+.room-pegboard button:hover { transform: translateY(-4px) rotate(8deg); }
+.room-pegboard button[aria-pressed="true"] { color: var(--palette-74); border-color: var(--palette-99); background: var(--palette-100); }
+.room-pegboard small { display: block; width: 100%; font-size: 9px; text-align: center; color: var(--palette-101); margin-top: 5px; }
+.room-notepad { position: absolute; top: 305px; left: 7%; z-index: 3; width: 112px; min-height: 120px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 17px; border-radius: 2px 2px 12px 2px; border: 1px solid var(--palette-102); background: var(--palette-103); color: var(--palette-104); transform: rotate(5deg); box-shadow: 0 6px 0 var(--palette-105); transition: transform .15s; }
+.room-notepad::before { content: ''; position: absolute; top: -7px; left: 34px; width: 38px; height: 16px; background: var(--palette-106); transform: rotate(-9deg); }
+.room-notepad:hover { background: var(--palette-107); transform: rotate(0) translateY(-3px); }
+.room-notepad span { font-size: 11px; }
+.room-notepad i { height: 2px; width: 100%; background: var(--palette-108); opacity: .5; }
+.room-notepad i:last-child { width: 70%; }
+.room-shelf { position: absolute; display: flex; align-items: end; justify-content: flex-end; gap: 5px; top: 97px; right: 7%; height: 63px; width: 144px; border-bottom: 7px solid var(--palette-109); border-radius: 3px; }
+.room-book { width: 15px; height: 39px; border: 4px solid var(--palette-110); border-radius: 2px; background: var(--palette-111); }
+.room-book:nth-child(2) { height: 46px; border-color: var(--palette-112); transform: rotate(-9deg); margin: 0 10px 0 3px; }
+.room-pot { position: relative; width: 30px; height: 25px; background: var(--palette-113); border-radius: 3px 3px 10px 10px; margin: 0 12px; }
+.room-pot i { position: absolute; bottom: 23px; left: 12px; width: 10px; height: 24px; border-radius: 100% 0 100% 0; background: var(--palette-114); transform-origin: bottom center; }
+.room-pot i:first-child { transform: rotate(-48deg); }
+.room-pot i:nth-child(2) { transform: rotate(40deg); height: 32px; background: var(--palette-115); }
+.robot-room .workshop-builder { position: absolute; left: 29%; bottom: 55px; width: 260px; z-index: 3; }
+.robot-room .workshop-bubble { width: 275px; margin: 0 0 -1px -10px; padding: 14px 18px; min-height: 76px; box-shadow: 0 5px 18px var(--palette-116); }
+.robot-room .workshop-bubble p { font-size: 13px; }
+.robot-room .workshop-bubble::after { left: 110px; }
+.robot-room .workshop-worker { display: block; position: relative; width: 240px; margin: 10px auto 0; padding: 0; border: 0; border-radius: 45%; color: var(--robot-color); background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.robot-room .workshop-worker:hover { background: none; }
+.robot-room .workshop-worker:focus-visible { outline-offset: 4px; }
+.robot-room .workshop-worker .robot-head { transform: translate(var(--look-x,0px),var(--look-y,0px)); transition: transform .18s ease-out; }
+.robot-room .workshop-worker .robot-gaze { transform: translate(var(--look-x,0px),var(--look-y,0px)); transition: transform .12s ease-out; }
+.robot-room .robot-eyes { transform-origin: 120px 84px; animation: robot-blink 6s infinite; }
+.robot-room .robot-concern { display: none; }
+.robot-room[data-status="failed"] .robot-smile, .robot-room[data-status="blocked"] .robot-smile { display: none; }
+.robot-room[data-status="failed"] .robot-concern, .robot-room[data-status="blocked"] .robot-concern { display: initial; }
+.robot-room .workshop-worker[data-working="true"] .robot-tool-arm { transform-origin: 167px 161px; animation: robot-craft 2.5s ease-in-out infinite; }
+.robot-room .workshop-worker[data-working="true"] .robot-heart { animation: workshop-light 3s ease-in-out infinite; }
+.robot-room .workshop-worker[data-waving="true"] .robot-left-arm { transform-origin: 75px 163px; animation: robot-wave .55s ease-in-out 4; }
+.robot-hello { position: absolute; right: -26px; top: 38px; color: var(--palette-117); border-radius: 10px; font-size: 12px; pointer-events: none; background: var(--palette-118); padding: 8px 12px; border: 1px solid var(--palette-119); transform: rotate(5deg); }
+.robot-hello:empty { display: none; }
+.robot-touch-hint { position: absolute; bottom: -8px; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 10px; color: var(--palette-120); opacity: 0; transition: opacity .2s; }
+.workshop-worker:hover .robot-touch-hint, .workshop-worker:focus-visible .robot-touch-hint { opacity: 1; }
+.robot-room .workshop-app { position: absolute; right: 5%; bottom: 133px; width: 29%; margin: 0; transform: perspective(900px) rotateY(-8deg) rotate(2deg); box-shadow: 7px 8px 0 var(--palette-121); }
+.robot-room .workshop-app-content { min-height: 154px; }
+.robot-room .workshop-app-page { padding: 18px 15px; }
+.robot-room .workshop-app-nav { width: 40px; padding: 18px 10px; }
+.robot-room .workshop-app-tiles { margin-top: 16px; gap: 8px; }
+.robot-room .workshop-app-tiles > div { padding: 7px; min-height: 40px; }
+.robot-room .workshop-app-stamp { font-size: 10px; right: -6px; padding: 8px; }
+.robot-room .workshop-bench { bottom: 116px; left: 24%; right: 3%; height: 15px; border-color: var(--palette-122); background: var(--palette-123); border-radius: 5px; z-index: 0; }
+.robot-room .workshop-bench::before, .robot-room .workshop-bench::after { top: 14px; width: 13px; height: 67px; background: var(--palette-124); border: 1px solid var(--palette-125); }
+.robot-room .workshop-bench > span { position: absolute; top: 16px; right: 28px; width: 115px; height: 20px; border: 1px solid var(--palette-126); background: var(--palette-127); border-radius: 2px; }
+.robot-room .workshop-bench > span::after { content: ''; position: absolute; height: 3px; width: 20px; background: var(--palette-128); left: 47px; top: 7px; border-radius: 2px; }
+.robot-room .workshop-bench > span:nth-child(2) { top: 38px; }
+.robot-room .workshop-bench > span:nth-child(3) { top: 60px; }
+.room-play-label { position: absolute; bottom: 17px; width: 100%; text-align: center; color: var(--palette-129); font-size: 10px; }
+@keyframes robot-blink { 0%,43%,47%,100% { transform: scaleY(1); } 45% { transform: scaleY(.12); } }
+@keyframes robot-craft { 0%,60%,100% { transform: rotate(0); } 20%,40% { transform: rotate(-8deg); } 30%,50% { transform: rotate(6deg); } }
+@keyframes robot-wave { 0%,100% { transform: rotate(0); } 35%,70% { transform: rotate(125deg); } 50% { transform: rotate(100deg); } }
+@media (hover: none) { .robot-touch-hint { opacity: 1; } }
+@media (max-width: 800px) {
+ .robot-room .workshop-scene { min-height: 600px; }
+ .robot-room .workshop-builder { left: 20%; bottom: 55px; width: 245px; }
+ .robot-room .workshop-bubble { width: 245px; }
+ .robot-room .workshop-app { right: 4%; bottom: 146px; width: 25%; }
+ .robot-room .workshop-app-nav { display: none; }
+ .robot-room .workshop-app-tiles { grid-template-columns: 1fr; }
+ .robot-room .workshop-app-tiles > div:nth-child(n+3) { display: none; }
+ .robot-room .workshop-app-page { padding: 12px; }
+ .room-pegboard { top: 110px; left: 4%; width: 110px; gap: 6px; padding: 12px 8px; }
+ .room-pegboard button { padding: 6px; }
+ .room-notepad { top: 315px; left: 4%; width: 90px; padding: 14px; }
+ .room-shelf { right: 5%; top: 88px; width: 110px; }
+ .robot-room .workshop-bench { left: 12%; }
+}
+@media (max-width: 540px) {
+ .robot-room .workshop-scene { min-height: 710px; }
+ .room-topline { inset: 14px 14px auto; }
+ .room-pegboard { top: 65px; left: 14px; width: 143px; padding: 10px; gap: 5px; }
+ .room-pegboard > span { margin-bottom: 0; }
+ .room-pegboard button { padding: 6px; }
+ .room-pegboard small { display: none; }
+ .room-notepad { top: 69px; left: auto; right: 18px; width: 95px; min-height: 90px; padding: 10px; }
+ .room-notepad i:last-child { display: none; }
+ .room-shelf { display: none; }
+ .robot-room .workshop-builder { display: block; left: 50%; transform: translateX(-50%); bottom: 58px; width: 240px; animation: none; }
+ .robot-room .workshop-bubble { width: 100%; margin: 0; min-height: 70px; }
+ .robot-room .workshop-worker { width: 210px; margin: 5px auto 0; }
+ .robot-room .workshop-app { bottom: auto; top: 188px; right: 18px; width: 110px; transform: rotate(4deg); opacity: .85; }
+ .robot-room .workshop-app-content { min-height: 65px; }
+ .robot-room .workshop-app-top { height: 23px; padding: 0 7px; }
+ .robot-room .workshop-app-top small { font-size: 8px; }
+ .robot-room .workshop-app-tiles { display: none; }
+ .robot-room .workshop-app-stamp { bottom: -10px; font-size: 8px; padding: 5px; }
+ .robot-room .workshop-app-stamp svg { width: 13px; }
+ .robot-room .workshop-bench { left: 5%; right: 5%; bottom: 109px; }
+ .robot-room .workshop-bench > span { right: 10px; width: 65px; }
+ .robot-room .workshop-bench > span::after { left: 22px; }
+ .robot-hello { right: -12px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .robot-room *, .robot-room *::before, .robot-room *::after { animation: none !important; transition: none !important; }
+ .robot-room .robot-head, .robot-room .robot-gaze { transform: none !important; }
+}
+
+/* Observe the team at work: each role has its own station and choreography. */
+.workshop-exhibit .workshop-builder { width: 340px; left: 24%; }
+.workshop-exhibit .workshop-worker { width: 340px; max-width: 100%; cursor: default; margin: 10px 0 0; }
+.workshop-exhibit .workshop-bubble { margin-left: 0; }
+.workshop-exhibit .room-pegboard { align-items: center; justify-content: space-around; padding: 20px 12px; row-gap: 15px; color: var(--palette-130); }
+.workshop-exhibit .room-pegboard > svg:nth-child(3) { color: var(--palette-131); }
+.workshop-exhibit .room-pegboard > svg:nth-child(4) { color: var(--palette-132); }
+.workshop-exhibit .room-notepad:disabled { opacity: .6; cursor: default; }
+.workshop-exhibit .workshop-worker .robot-head,
+.workshop-exhibit .workshop-worker .robot-gaze { transform: none; }
+.workshop-exhibit .workshop-worker[data-working="true"] .robot-body { animation: none; }
+.workshop-exhibit .workshop-worker[data-working="true"] .robot-tool-arm { animation: none; }
+.workshop-exhibit .assembly-sparks { opacity: 0; }
+.workshop-exhibit .robot-work-surface { pointer-events: none; }
+.workshop-exhibit[data-active="true"] .workshop-worker .robot-head { transform-origin: 120px 130px; animation: robot-concentrate 5s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .workshop-worker .robot-gaze { transform: translate(4px,3px); }
+.workshop-exhibit[data-active="true"][data-activity="design"] .robot-tool-arm { animation: robot-paint 5s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .design-stroke { stroke-dasharray: 1; animation: canvas-paint 5s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .stroke-two { animation-delay: .7s; }
+.workshop-exhibit[data-active="true"] .stroke-three { animation-delay: 1.4s; }
+.workshop-exhibit[data-active="true"][data-activity="build"] .robot-tool-arm { animation: robot-tighten 3s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .assembly-block { animation: block-fit 3s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .assembly-sparks { animation: bolt-spark 3s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"][data-activity="plan"] .robot-tool-arm { animation: robot-draft 6s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .plan-lines { stroke-dasharray: 1; animation: blueprint-draw 6s linear infinite; }
+.workshop-exhibit[data-active="true"][data-activity="inspect"] .robot-tool-arm { animation: robot-inspect 4s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .inspection-scan { animation: inspection-sweep 4s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"][data-activity="write"] .robot-tool-arm { animation: robot-write 4s ease-in-out infinite; }
+.workshop-exhibit[data-active="true"] .writing-lines { stroke-dasharray: 1; animation: blueprint-draw 4s linear infinite; }
+.workshop-exhibit[data-active="true"][data-activity="write"] .robot-left-arm { transform-origin: 75px 163px; animation: robot-type 1.2s ease-in-out infinite; }
+@keyframes robot-concentrate { 0%,100% { transform: rotate(0); } 35%,75% { transform: rotate(4deg) translateY(2px); } }
+@keyframes robot-paint { 0%,100% { transform: translate(0,0); } 18% { transform: translate(32px,8px) rotate(4deg); } 35% { transform: translate(2px,19px); } 55% { transform: translate(36px,27px) rotate(5deg); } 78% { transform: translate(4px,35px); } }
+@keyframes canvas-paint { 0% { stroke-dashoffset: 1; opacity: .3; } 40%,85% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: .3; } }
+@keyframes robot-tighten { 0%,15%,100% { transform: translateY(-7px) rotate(-8deg); } 25%,45%,65% { transform: translateY(8px) rotate(8deg); } 35%,55% { transform: translateY(3px) rotate(-5deg); } 80% { transform: translateY(0); } }
+@keyframes block-fit { 0%,8% { transform: translateY(-15px); opacity: .45; } 22%,85% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-15px); opacity: .45; } }
+@keyframes bolt-spark { 0%,20%,30%,40%,50%,60%,70%,100% { opacity: 0; } 25%,45%,65% { opacity: .8; } }
+@keyframes robot-draft { 0%,100% { transform: translate(0,0); } 20% { transform: translate(31px,0); } 40% { transform: translate(31px,20px); } 55% { transform: translate(4px,20px); } 75% { transform: translate(38px,40px); } 90% { transform: translate(4px,40px); } }
+@keyframes blueprint-draw { 0% { stroke-dashoffset: 1; opacity: .35; } 75%,90% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: .35; } }
+@keyframes robot-inspect { 0%,100% { transform: translate(8px,-20px); } 30% { transform: translate(35px,-5px); } 65% { transform: translate(8px,20px); } 85% { transform: translate(35px,20px); } }
+@keyframes inspection-sweep { 0%,100% { transform: translateY(0); opacity: .4; } 50% { transform: translateY(62px); opacity: .9; } }
+@keyframes robot-write { 0%,100% { transform: translate(0,0); } 20% { transform: translate(32px,3px); } 24% { transform: translate(2px,15px); } 45% { transform: translate(35px,18px); } 49% { transform: translate(2px,28px); } 72% { transform: translate(35px,32px); } 76% { transform: translate(2px,40px); } }
+@keyframes robot-type { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(-17deg); } }
+@media (max-width: 800px) {
+ .workshop-exhibit .workshop-builder { left: 16%; width: 300px; }
+ .workshop-exhibit .workshop-worker { width: 300px; }
+}
+@media (max-width: 540px) {
+ .workshop-exhibit .workshop-scene { min-height: 610px; }
+ .workshop-exhibit .workshop-builder { left: 50%; width: calc(100% - 28px); max-width: 340px; bottom: 60px; }
+ .workshop-exhibit .workshop-worker { width: 100%; }
+ .workshop-exhibit .workshop-bubble { width: min(275px,100%); margin: 0 auto 15px; }
+ .workshop-exhibit .workshop-app { display: none; }
+ .workshop-exhibit .room-pegboard { padding: 12px 10px; }
+}
+/* Both user pause and system reduced motion stop every work loop. */
+@media (prefers-reduced-motion: reduce) { .workshop-exhibit *, .workshop-exhibit *::before, .workshop-exhibit *::after { animation: none !important; transition: none !important; } }
+
+.app-name { font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--muted); }
+.service-connection { padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+.service-connection p { margin: 0 0 10px; }
+.settings-dialog .service-connection .actions { justify-content: flex-start; flex-wrap: wrap; margin: 10px 0; }
+.service-connection summary { cursor: pointer; color: var(--muted); }
+.service-connection details p { margin-top: 10px; }
+.service-connection pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.settings-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
+

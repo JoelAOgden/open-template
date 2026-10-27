@@ -1,0 +1,5 @@
+{
+  "codex": { "package": "@openai/codex", "version": "0.164.0", "label": "Codex" },
+  "gemini": { "package": "@google/gemini-cli", "version": "0.65.0", "label": "Gemini" },
+  "claude": { "package": "@anthropic-ai/claude-code", "version": "2.1.308", "label": "Claude Code" }
+}

@@ -1,0 +1,1 @@
+Interpret what the section's changes require, inspect the relevant implementation and complete the work. Let the section's content guide whether this calls for new behaviour, revisions or removal, rather than assuming every requirement is a feature to add.

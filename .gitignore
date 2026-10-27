@@ -1,0 +1,56 @@
+# Dependencies and build outputs
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/runtime/
+src-tauri/binaries/*
+
+# Local projects, history, settings and managed provider installations
+.project-ide/
+.project-studio/
+.studio-local/
+projects/
+project_src/
+
+# Local IDE settings (keep on disk, exclude from the public repository)
+.idea/
+.DS_Store
+
+# Test reports and screenshots
+test-results/
+playwright-report/
+output/
+screen_shots/
+coverage/
+*.log
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+!.env.*.example
+.aws/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local AI coding-agent instructions, skills and settings
+.agents/
+.codex/
+.claude/
+.gemini/
+[Aa][Gg][Ee][Nn][Tt][Ss].md
+[Aa][Gg][Ee][Nn][Tt][Ss].override.md
+[Cc][Ll][Aa][Uu][Dd][Ee].md
+[Cc][Ll][Aa][Uu][Dd][Ee].local.md
+[Gg][Ee][Mm][Ii][Nn][Ii].md
+[Gg][Ee][Mm][Ii][Nn][Ii].local.md
+CODEX_PROMPT.md
+
+# Private development plans, AI guidance and design references
+/ai-docs/
+
+# Staged release downloads
+/release-assets/

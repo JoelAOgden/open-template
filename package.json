@@ -1,0 +1,43 @@
+{
+  "name": "open-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false --include server --include shared --exclude project_src --exclude projects --exclude .studio-local --exclude src --exclude dist server/index.ts --dev",
+    "start": "node --import tsx server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "build": "vite build",
+    "postinstall": "node scripts/prepare-services.mjs",
+    "predev": "node scripts/prepare-services.mjs",
+    "prestart": "node scripts/prepare-services.mjs",
+    "tauri": "node scripts/tauri.mjs",
+    "desktop:dev": "node scripts/tauri.mjs dev",
+    "desktop:build": "node scripts/tauri.mjs build",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "release:version": "node scripts/release-version.mjs set"
+  },
+  "dependencies": {
+    "lucide-react": "1.39.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "3.25.76",
+    "playwright": "1.63.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "4.7.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "6.4.4"
+  },
+  "license": "GPL-3.0-only"
+}

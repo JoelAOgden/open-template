@@ -1,0 +1,121 @@
+name: Release installers
+
+on:
+  push:
+    branches: ['release']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            platform: macos-arm64
+            arch: arm64
+          - os: macos-15-intel
+            platform: macos-x64
+            arch: x64
+          - os: windows-2022
+            platform: windows-x64
+            arch: x64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify application versions
+        shell: bash
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")
+          node scripts/release-version.mjs check "v$version"
+      - run: npm ci
+      - run: npm run check:architecture
+      - run: npm run typecheck
+      - run: npm run build
+      - if: runner.os == 'macOS'
+        run: npm test
+      - if: runner.os == 'Windows'
+        run: node --import tsx --test tests/desktop.test.ts tests/release.test.ts
+      - if: matrix.platform == 'macos-arm64'
+        run: npx playwright install chromium
+      - if: matrix.platform == 'macos-arm64'
+        run: npm run test:e2e
+      - name: Build macOS installers (ad-hoc signed, not notarized)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_SIGNING_IDENTITY: '-'
+        run: npm run desktop:build
+      - name: Build Windows installers (unsigned)
+        if: runner.os == 'Windows'
+        run: npm run desktop:build
+      - run: node scripts/collect-installers.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.platform }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate checksums
+        working-directory: release-assets
+        run: sha256sum *.dmg *.exe *.msi > SHA256SUMS.txt
+      - name: Prepare a new version tag
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { version } = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+            const tag = `v${version}`;
+            try {
+              await github.rest.git.getRef({ ...context.repo, ref: `tags/${tag}` });
+              throw new Error(`${tag} already exists. Bump the application version before releasing again.`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            core.setOutput('tag', tag);
+      - name: Publish installers and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          flags=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --target "$RELEASE_COMMIT" --title "open-template $RELEASE_TAG" \
+            --generate-notes --notes-file .github/release-notes.md "${flags[@]}"

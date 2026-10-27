@@ -1,0 +1,38 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  color-scheme: dark;
+  color: var(--palette-1);
+  background: var(--palette-2);
+  --bg: var(--palette-2);
+  --panel: var(--palette-3);
+  --raised: var(--palette-4);
+  --line: var(--palette-5);
+  --muted: var(--palette-6);
+  --text: var(--palette-1);
+  --blue: var(--palette-7);
+  --green: var(--palette-8);
+}
+:root { --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --radius-control: 4px; --radius-panel: 8px; --type-small: 12px; --type-body: 14px; --layer-menu: 10000; }
+
+:root { --danger: #e6a0a0; --illustration-highlight: #fff; }
+:root {
+  --color-background: var(--palette-2);
+  --color-surface: var(--palette-3);
+  --color-surface-raised: var(--palette-4);
+  --color-border: var(--palette-5);
+  --color-text: var(--palette-1);
+  --color-text-muted: var(--palette-6);
+  --color-accent: var(--palette-7);
+  --color-success: var(--palette-8);
+  --bg: var(--color-background);
+  --panel: var(--color-surface);
+  --raised: var(--color-surface-raised);
+  --line: var(--color-border);
+  --text: var(--color-text);
+  --muted: var(--color-text-muted);
+  --blue: var(--color-accent);
+  --green: var(--color-success);
+}
+
+:root {--action-primary:var(--palette-47);--action-primary-hover:var(--palette-49);--action-primary-text:var(--palette-48)}

@@ -1,0 +1,170 @@
+.revision-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-px-18);
+}
+
+
+.workspace[hidden],
+.debug-prompts[hidden] {
+  display: none;
+}
+
+.debug-page {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-px-20) var(--space-px-28);
+  overflow: auto;
+}
+
+.debug-heading {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-px-16);
+}
+
+.debug-heading h1 {
+  margin: 0;
+  font-size: var(--font-size-18);
+}
+
+.debug-heading nav {
+  flex-direction: row;
+}
+
+.debug-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-14);
+  flex: 1;
+  min-height: 0;
+}
+
+.debug-files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-14);
+  flex: 1;
+  min-height: 0;
+}
+
+.debug-files .debug-note {
+  font-size: var(--font-size-12);
+}
+
+.debug-file-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 28%) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+
+.debug-file-layout nav {
+  display: block;
+  overflow: auto;
+  padding: var(--space-px-12) var(--space-px-12) 0 0;
+  border-right: 1px solid var(--line);
+}
+
+.debug-file-layout nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 0;
+  white-space: nowrap;
+  font-weight: var(--font-weight-400);
+}
+
+.debug-file-layout nav button[aria-current] {
+  background: var(--raised);
+}
+
+.debug-file-view {
+  overflow: auto;
+  padding: var(--space-px-12) var(--space-px-20);
+}
+
+.debug-file-view h2 {
+  margin: 0 0 var(--space-px-16);
+  font-size: var(--font-size-13);
+  font-weight: var(--font-weight-500);
+  overflow-wrap: anywhere;
+}
+
+.debug-file-view pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-12);
+  line-height: 1.7;
+}
+
+.debug-file-view img {
+  max-width: 100%;
+  max-height: 500px;
+}
+
+.debug-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-14);
+}
+
+.debug-shell .modal-heading,
+.debug-shell p {
+  margin: 0;
+}
+
+.debug-note {
+  color: var(--muted);
+}
+
+.debug-toolbar,
+.debug-views {
+  display: flex;
+  align-items: center;
+  gap: var(--space-px-6);
+}
+
+.debug-toolbar {
+  justify-content: space-between;
+}
+
+.debug-views button {
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.debug-views button[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--raised);
+}
+
+.debug-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-px-14);
+  font-size: var(--font-size-12);
+  line-height: 1.7;
+}
+
+.debug-reset {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-px-12);
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-px-14);
+}
+
+.debug-pipeline { flex: 1; min-height: 0; overflow: auto; scrollbar-gutter: stable; }

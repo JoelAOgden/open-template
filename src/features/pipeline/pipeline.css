@@ -1,0 +1,142 @@
+.pipeline-layout { display: grid; grid-template-columns: minmax(180px, 260px) minmax(0, 1fr); align-items: start; gap: var(--space-px-20); margin-top: var(--space-px-16); }
+
+.pipeline-steps { display: flex; flex-direction: column; gap: var(--space-px-4); max-height: 65vh; overflow: auto; }
+
+.pipeline-steps button { text-align: left; display: grid; gap: var(--space-px-5); white-space: normal; }
+
+.pipeline-steps button[aria-current="step"] { background: var(--palette-38); }
+
+.pipeline-steps span, .pipeline-steps small { color: var(--muted); font-size: var(--font-size-11); }
+
+.pipeline-detail { min-width: 0; }
+
+.pipeline-detail .debug-content { max-height: 65vh; }
+
+.pipeline-coverage { margin: var(--space-px-16) 0; max-height: 40vh; overflow: auto; }
+
+.pipeline-coverage details, .pipeline-requirement { padding: var(--space-px-8) 0 var(--space-px-8) var(--space-px-12); }
+
+.pipeline-plan-tasks { padding-left: var(--space-px-22); }
+
+.pipeline-plan-tasks > li { padding: var(--space-px-10) 0; }
+
+.pipeline-plan-tasks p, .pipeline-plan-tasks ul { color: var(--muted); line-height: 1.6; }
+
+.workflow-panel { padding: var(--space-px-14); min-width: 0; display: grid; gap: var(--space-px-12); }
+
+.workflow-panel label { display: block; margin: var(--space-px-6) 0; }
+
+.workflow-panel input[type=checkbox] { width: auto; }
+
+.workflow-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 440px; font-size: var(--font-size-12); }
+
+.workflow-panel details { min-width: 0; }
+
+.workflow-panel .muted { opacity: .65; font-size: var(--font-size-12); line-height: 1.5; }
+
+.workflow-panel .actions { display: flex; flex-wrap: wrap; gap: var(--space-px-8); }
+
+.pipeline-workspace { flex: 1; min-height: 0; overflow: auto; padding: var(--space-px-48) var(--space-px-40) var(--space-px-72); }
+
+.pipeline-workspace[hidden] { display: none; }
+
+.pipeline-workspace > .workflow-panel, .legacy-history { width: 100%; max-width: 1000px; margin: 0 auto; }
+
+.workflow-panel { display: flex; flex-direction: column; gap: var(--space-px-20); padding: 0; }
+
+.pipeline-heading { display: flex; justify-content: space-between; align-items: center; gap: var(--space-px-20); }
+
+.pipeline-heading h1 { font-size: var(--font-size-26); font-weight: var(--font-weight-500); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+.pipeline-empty { text-align: center; padding: var(--space-px-24) 0; }
+
+.pipeline-run-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-px-12); font-size: var(--font-size-11); color: var(--muted); }
+
+.workflow-panel progress { width: 100%; height: 3px; appearance: none; border: none; background: var(--line); border-radius: var(--radius-3); }
+
+.workflow-panel progress::-webkit-progress-bar { background: var(--line); }
+
+.workflow-panel progress::-webkit-progress-value { background: var(--blue); }
+
+.workflow-panel progress::-moz-progress-bar { background: var(--blue); }
+
+.pipeline-work { border-top: 1px solid var(--line); padding-top: var(--space-px-24); display: flex; flex-direction: column; gap: var(--space-px-24); }
+
+.stage-navigation { order: 2; }
+
+.stage-list { display: flex; flex-direction: column; gap: var(--space-px-3); margin-top: var(--space-px-12); max-height: 340px; overflow: auto; }
+
+.stage-list button { text-align: left; justify-content: flex-start; border-color: transparent; padding: var(--space-px-9) var(--space-px-10); color: var(--muted); }
+
+.stage-list button[aria-current="step"] { color: var(--text); background: var(--raised); }
+
+.stage-list button small { margin-left: auto; }
+
+.stage-list button svg { color: var(--blue); }
+
+.workflow-inspector { display: grid; gap: var(--space-px-14); min-width: 0; }
+
+.workflow-inspector h3 { font-size: var(--font-size-16); }
+
+.workflow-panel details[open] > summary { margin-bottom: var(--space-px-12); }
+
+.workflow-panel pre { padding: var(--space-px-14); background: var(--palette-45); border-radius: var(--radius-6); max-height: 360px; line-height: 1.7; }
+
+.workflow-panel textarea { min-height: 76px; padding: var(--space-px-10); }
+
+.workflow-panel > details, .stage-navigation { padding-top: var(--space-px-14); border-top: 1px solid var(--line); }
+
+.workflow-panel .workflow-launch { order: 9; }
+
+.workflow-panel .validation-warnings { font-size: var(--font-size-12); padding: var(--space-px-14) var(--space-px-16); border-width: 0 0 0 2px; border-radius: 0; }
+
+.workflow-panel .validation-warnings ul { margin-bottom: 0; }
+
+.workflow-options { display: grid; gap: var(--space-px-12); padding: var(--space-px-16) 0; }
+
+.workflow-options > button { justify-self: start; }
+
+
+
+
+.workflow-inspector {
+  padding: var(--space-px-20);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-8);
+  background: var(--panel);
+}
+
+.workflow-inspector[data-status="running"] {
+  border-color: var(--palette-50);
+  box-shadow: var(--shadow-52);
+}
+
+.workflow-inspector[data-status="failed"],
+.workflow-inspector[data-status="blocked"] {
+  border-color: var(--palette-51);
+  box-shadow: var(--shadow-53);
+}
+
+.workflow-inspector > details > summary,
+.stage-navigation > summary { color: var(--muted); font-size: var(--font-size-12); }
+
+.workflow-inspector > details > summary:hover,
+.stage-navigation > summary:hover { color: var(--text); }
+
+.stage-list button[data-status="completed"]:not([aria-current="step"]) svg {
+  color: var(--muted);
+}
+
+.workflow-panel textarea {max-width:100%;width:100%}

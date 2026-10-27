@@ -1,0 +1,1 @@
+Align the affected implementation with the updated technical requirements, including relevant structure, boundaries and dependencies. Preserve behaviour unless the specification changes it. Refactor where needed to meet the changes; avoid unrelated rewrites.
