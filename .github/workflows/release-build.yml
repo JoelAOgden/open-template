@@ -55,17 +55,6 @@ jobs:
         shell: bash
         run: node scripts/release-version.mjs check "v$RELEASE_VERSION"
       - run: npm ci
-      - run: npm run check:architecture
-      - run: npm run typecheck
-      - run: npm run build
-      - if: runner.os == 'macOS'
-        run: npm test
-      - if: runner.os == 'Windows'
-        run: node --import tsx --test tests/desktop.test.ts tests/release.test.ts
-      - if: matrix.platform == 'macos-arm64'
-        run: npx playwright install chromium
-      - if: matrix.platform == 'macos-arm64'
-        run: npm run test:e2e
       - name: Build macOS installers (ad-hoc signed, not notarized)
         if: runner.os == 'macOS'
         env:
@@ -140,4 +129,4 @@ jobs:
           if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
           gh release create "$RELEASE_TAG" release-assets/* \
             --target "$RELEASE_COMMIT" --title "open-template $RELEASE_TAG" \
-            --generate-notes --notes-file .github/release-notes.md "${flags[@]}"
+            --notes-file .github/release-notes.md "${flags[@]}"

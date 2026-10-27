@@ -11,6 +11,17 @@ Open this repository's **Releases** page on GitHub, choose a release, and expand
 - **macOS:** download `macos-arm64.dmg` for Apple Silicon or `macos-x64.dmg` for Intel. Open the DMG, drag **open-template** into **Applications**, then launch it.
 - **Windows — untested:** download `windows-x64.exe` or `windows-x64.msi`, run the installer, and launch **open-template** from the Start menu. Windows builds are provided for testing; installation and runtime behavior have not been verified on a real Windows machine. Claude's required sandbox currently prevents native Windows execution.
 
+**If macOS blocks the app:** these previews are not notarized by Apple. If you trust the release you downloaded:
+
+1. Try opening **open-template** from Applications.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll down to the **Security** section.
+4. Beside the message **“open-template” was blocked to protect your Mac**, click **Open Anyway**, then confirm.
+
+![The Security section showing the Open Anyway button beside the blocked open-template message](readme-img/security-open-anyway.png)
+
+See [Apple’s instructions](https://support.apple.com/en-gb/102445).
+
 Installers include Node and the provider CLI tools. Choose a provider in **Settings** and sign in. These preview releases are not developer-signed or notarized, so your operating system may warn or block installation. If no release is listed yet, use the development setup below.
 
 ## Development setup
@@ -41,6 +52,8 @@ Build an installer with `npm run desktop:build` on the target OS and architectur
 
 ## GitHub releases
 
+Only updates to `release` trigger GitHub Actions. PRs and pushes to other branches do not run validation checks. Run the checks above locally before merging.
+
 Target release PRs at `release`. Include a new application version in each release PR:
 
 ```sh
@@ -48,7 +61,7 @@ npm run release:version -- 0.1.0
 # Commit the version changes, then open and merge a PR into release.
 ```
 
-Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build, tests all targets, and publishes downloads with checksums and a `v<version>` tag after every build passes. Apple Silicon/Intel macOS and Windows x64 are built separately.
+Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build and publishes downloads with checksums and a `v<version>` tag after every build succeeds. Apple Silicon/Intel macOS and Windows x64 are built separately. Automated tests, type checking and architecture checks are not run; version and snapshot integrity safeguards remain enforced.
 
 Snapshot branches have no deployment trigger: creating or pushing `releases/*` or tags does not publish anything. Existing version branches are never overwritten by the workflow. Retry a failed run in Actions; use a new version for subsequent merges. Versions such as `0.2.0-beta.1` create prereleases. GitHub's automatic token is used; no personal access token is needed.
 
