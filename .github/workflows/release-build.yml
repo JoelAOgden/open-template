@@ -1,0 +1,143 @@
+name: Build release snapshot
+
+# Deliberately no push, tag or manual trigger. Called by release.yml only.
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      commit:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            platform: macos-arm64
+            arch: arm64
+          - os: macos-15-intel
+            platform: macos-x64
+            arch: x64
+          - os: windows-2022
+            platform: windows-x64
+            arch: x64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable action snapshot
+        with:
+          toolchain: stable
+      - name: Verify application versions
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: node scripts/release-version.mjs check "v$RELEASE_VERSION"
+      - run: npm ci
+      - run: npm run check:architecture
+      - run: npm run typecheck
+      - run: npm run build
+      - if: runner.os == 'macOS'
+        run: npm test
+      - if: runner.os == 'Windows'
+        run: node --import tsx --test tests/desktop.test.ts tests/release.test.ts
+      - if: matrix.platform == 'macos-arm64'
+        run: npx playwright install chromium
+      - if: matrix.platform == 'macos-arm64'
+        run: npm run test:e2e
+      - name: Build macOS installers (ad-hoc signed, not notarized)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_SIGNING_IDENTITY: '-'
+        run: npm run desktop:build
+      - name: Build Windows installers (unsigned)
+        if: runner.os == 'Windows'
+        run: npm run desktop:build
+      - run: node scripts/collect-installers.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: installers-${{ matrix.platform }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: installers-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate checksums
+        working-directory: release-assets
+        run: sha256sum *.dmg *.exe *.msi > SHA256SUMS.txt
+      - name: Prepare a new version tag
+        id: version
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          SNAPSHOT_BRANCH: ${{ inputs.branch }}
+          SNAPSHOT_COMMIT: ${{ inputs.commit }}
+        with:
+          script: |
+            const version = process.env.RELEASE_VERSION;
+            if (version !== JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version) {
+              throw new Error('Snapshot version does not match the requested release.');
+            }
+            const snapshot = await github.rest.git.getRef({ ...context.repo, ref: `heads/${process.env.SNAPSHOT_BRANCH}` });
+            if (snapshot.data.object.sha !== process.env.SNAPSHOT_COMMIT) {
+              throw new Error('Snapshot branch changed after creation; refusing to publish.');
+            }
+            const tag = `v${version}`;
+            try {
+              await github.rest.git.getRef({ ...context.repo, ref: `tags/${tag}` });
+              throw new Error(`${tag} already exists. Bump the application version before releasing again.`);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            core.setOutput('tag', tag);
+      - name: Publish installers and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        shell: bash
+        run: |
+          flags=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --target "$RELEASE_COMMIT" --title "open-template $RELEASE_TAG" \
+            --generate-notes --notes-file .github/release-notes.md "${flags[@]}"

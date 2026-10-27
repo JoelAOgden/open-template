@@ -41,16 +41,16 @@ Build an installer with `npm run desktop:build` on the target OS and architectur
 
 ## GitHub releases
 
-With GitHub Actions enabled, pushes and PR merges into `release` trigger deployment. Before each release, update and commit the version:
+Target release PRs at `release`. Include a new application version in each release PR:
 
 ```sh
 npm run release:version -- 0.1.0
-# Commit the version changes and merge them into release.
-# If working directly on release:
-git push origin release
+# Commit the version changes, then open and merge a PR into release.
 ```
 
-The **Release installers** workflow tests and builds Apple Silicon/Intel macOS and Windows x64 installers, then publishes them with checksums under **GitHub → Releases** after every build passes. It uses GitHub's automatic token; no personal access token is needed. The workflow creates a version tag at the exact built commit. Use a new version for each release; versions such as `0.2.0-beta.1` create prereleases. Existing tags are never overwritten. Pushing tags or other branches does not trigger deployment.
+Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build, tests all targets, and publishes downloads with checksums and a `v<version>` tag after every build passes. Apple Silicon/Intel macOS and Windows x64 are built separately.
+
+Snapshot branches have no deployment trigger: creating or pushing `releases/*` or tags does not publish anything. Existing version branches are never overwritten by the workflow. Retry a failed run in Actions; use a new version for subsequent merges. Versions such as `0.2.0-beta.1` create prereleases. GitHub's automatic token is used; no personal access token is needed.
 
 Initial downloads are unsigned (ad-hoc signed on macOS), not notarized, and may trigger OS security warnings. Signing and provider redistribution checks remain release tasks. This publishes downloads; it does not auto-update installed apps.
 
