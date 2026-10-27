@@ -129,4 +129,4 @@ jobs:
           if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
           gh release create "$RELEASE_TAG" release-assets/* \
             --target "$RELEASE_COMMIT" --title "open-template $RELEASE_TAG" \
-            --generate-notes --notes-file .github/release-notes.md "${flags[@]}"
+            --notes-file .github/release-notes.md "${flags[@]}"
