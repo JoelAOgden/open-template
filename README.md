@@ -54,16 +54,11 @@ Build an installer with `npm run desktop:build` on the target OS and architectur
 
 Only updates to `release` trigger GitHub Actions. PRs and pushes to other branches do not run validation checks. Run the checks above locally before merging.
 
-Target release PRs at `release`. Include a new application version in each release PR:
+Merge a PR into `release` to publish. The workflow automatically picks the next patch version above existing stable release tags and snapshot branches, using the version in `package.json` as a minimum. No manual version bump is needed.
 
-```sh
-npm run release:version -- 0.1.0
-# Commit the version changes, then open and merge a PR into release.
-```
+It creates `releases/<version>` with a version-only commit on top of the merged commit, synchronizing the npm, Tauri and Cargo manifests without writing back to `release`. It then builds Apple Silicon/Intel macOS and Windows x64 installers and publishes downloads with checksums and a `v<version>` tag after every build succeeds. Automated tests, type checking and architecture checks are not run; version and snapshot integrity safeguards remain enforced.
 
-Merging into `release` creates `releases/<version>` at that exact commit. The same workflow explicitly calls the installer build and publishes downloads with checksums and a `v<version>` tag after every build succeeds. Apple Silicon/Intel macOS and Windows x64 are built separately. Automated tests, type checking and architecture checks are not run; version and snapshot integrity safeguards remain enforced.
-
-Snapshot branches have no deployment trigger: creating or pushing `releases/*` or tags does not publish anything. Existing version branches are never overwritten by the workflow. Retry a failed run in Actions; use a new version for subsequent merges. Versions such as `0.2.0-beta.1` create prereleases. GitHub's automatic token is used; no personal access token is needed.
+Snapshot branches and tags have no deployment trigger. Existing snapshots are never overwritten; retrying the same workflow run reuses its assigned version and commit. Failed snapshots reserve their version numbers. For an intentional major/minor jump or prerelease, use `npm run release:version -- 0.2.0` (or `0.2.0-beta.1`) before merging; occupied prerelease numbers advance automatically. GitHub's automatic token is used; no personal access token is needed.
 
 Initial downloads are unsigned (ad-hoc signed on macOS), not notarized, and may trigger OS security warnings. Signing and provider redistribution checks remain release tasks. This publishes downloads; it does not auto-update installed apps.
 
