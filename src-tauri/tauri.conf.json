@@ -23,7 +23,7 @@
     "externalBin": ["binaries/node"],
     "resources": {"runtime/": "runtime/"},
     "icon": ["icons/icon.png", "icons/icon.ico"],
-    "macOS": {"minimumSystemVersion": "13.0"},
+    "macOS": {"minimumSystemVersion": "13.0", "entitlements": "./Entitlements.plist"},
     "windows": {"webviewInstallMode": {"type": "downloadBootstrapper", "silent": true}}
   }
 }
