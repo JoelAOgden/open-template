@@ -16,6 +16,7 @@ import { readCheckpoint } from "./checkpoints.js";
 import { recordValidationWarnings } from "./validation-policy.js";
 import { saveAIDecisions, decisionContext } from "./ai-decisions.js";
 import { launcher, hostPlatform } from "./launcher.js";
+import { MAX_FILE_BYTES, findOversize } from "./files.js";
 
 import {selectPipeline} from "./workflow/selection.js";
 
@@ -384,12 +385,22 @@ export class Workflows {
               appendLog(a.logs, line);
               logging = logging.then(() => fs.appendFile(path.join(controls, "events.jsonl"), line + "\n")).catch(e => { logError = e; });
             };
-            try {
-              a.output = await this.agent.run({ cwd: output, prompt: a.prompt, writable: writeKinds.has(s.kind), sessionId: a.resumedSessionId,
+          try {
+            let prompt = a.prompt;
+            for (let round = 0; ; round++) {
+              a.output = await this.agent.run({
+                cwd: output, prompt, writable: writeKinds.has(s.kind),
+                sessionId: w.sessions[s.sessionKey],
                 settings: w.settings, resultFile: path.join(controls, "response.txt"), signal, onEvent,
                 onSession: id => { a.sessionId = id; w.sessions[s.sessionKey] = id; },
               });
-            } finally { await logging; }
+              if (!writeKinds.has(s.kind)) break;
+              const big = await findOversize(output);
+              if (!big.length) break;
+              if (round >= 2) throw new AppError(`Files over the size limit: ${big.join(", ")}`, 409);
+              prompt = `These files exceed ${MAX_FILE_BYTES / 1024} KB and must be shrunk or removed: ${big.join(", ")}. Resize and compress images, update any references, then finish.`;
+            }
+          } finally { await logging; }
             if (logError) throw logError;
             await atomicWrite(root, `results/${s.id}.json`, JSON.stringify(a.output, null, 2));
           signal.throwIfAborted();
