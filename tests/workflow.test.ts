@@ -11,6 +11,8 @@ import type { CodexCall, CodingAgent } from "../server/codex-cli.js";
 import { codexArguments } from "../server/codex-cli.js";
 import type { StageOutput } from "../shared/workflow.js";
 
+import { MAX_FILE_BYTES } from "../server/files.js";
+
 const completed: StageOutput = {status:"completed",summary:"Checked",requirements:[],findings:[]};
 class FakeAgent implements CodingAgent {
   calls: CodexCall[] = [];
@@ -236,4 +238,32 @@ test("service selection persists and existing workflows retain their service on 
   const reopened=new Store(root);await reopened.init();
   assert.equal(reopened.settings.provider,"claude");
   await assert.rejects(studio.updateSettings({provider:"gemini",model:null,reasoning:"high"}),/only for Codex/);
+});
+
+test("oversized output is sent back to the agent and resolved on retry", async t => {
+    const {studio,agent} = await fixture(t);
+    let wrote = false;
+    agent.hook = async call => {
+        if (call.prompt.startsWith("These files exceed")) { await fs.rm(path.join(call.cwd,"big.bin")); return; }
+        if (!wrote) { wrote = true; await fs.writeFile(path.join(call.cwd,"big.bin"), Buffer.alloc(MAX_FILE_BYTES + 1)); }
+    };
+    await studio.workflows.create(options); await studio.workflows.waitForIdle();
+    const w = studio.workflows.active!;
+    assert.equal(w.status, "review", w.error);
+    assert.equal(agent.calls.length, w.stages.length + 1);
+    assert.match(agent.calls[1].prompt, /big\.bin/);
+    assert.equal(agent.calls[0].sessionId, undefined);
+    assert.ok(agent.calls[1].sessionId);
+    assert.equal(agent.calls[1].sessionId, w.stages[0].attempts[0].sessionId);
+});
+
+test("files that stay oversized fail the stage after three runs", async t => {
+    const {studio,agent} = await fixture(t);
+    agent.hook = async call => { await fs.writeFile(path.join(call.cwd,"big.bin"), Buffer.alloc(MAX_FILE_BYTES + 1)); };
+    await studio.workflows.create(options); await studio.workflows.waitForIdle();
+    const w = studio.workflows.active!;
+    assert.equal(w.status, "failed");
+    assert.equal(agent.calls.length, 3);
+    assert.match(w.error!, /big\.bin/);
+    assert.match(w.error!, /1024 KB/);
 });
