@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { CheckpointInfo } from "../shared/model.js";
 import type { Store } from "./store.js";
 import {
-  AppError, allowedEntry, changes, manifestHash, relativeParts,
+  AppError, allowedEntry, changes, manifestHash, relativeParts, MAX_FILE_BYTES,
   type Manifest,
 } from "./files.js";
 
@@ -27,8 +27,8 @@ function validate(files: Manifest) {
     const parts = relativeParts(file);
     if (parts.length > 21 || parts.some((part) => !allowedEntry(part)))
       throw new AppError("Unsafe checkpoint file path.");
-    if (bytes.length > 1024 * 1024)
-      throw new AppError("Checkpoint file exceeds the project size limit.");
+    if (bytes.length > MAX_FILE_BYTES)
+      throw new AppError(`Checkpoint file ${file} exceeds the project size limit.`);
     for (let i = 1; i < parts.length; i++)
       if (Object.hasOwn(files, parts.slice(0, i).join("/")))
         throw new AppError("Checkpoint contains conflicting file paths.");

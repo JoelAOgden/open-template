@@ -4,6 +4,8 @@ import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import type { FileChange, TreeEntry } from "../shared/model.js";
 
+export const MAX_FILE_BYTES = 1024 * 1024;
+
 export class AppError extends Error {
   constructor(
     message: string,
@@ -85,7 +87,7 @@ export async function readSafe(
   root: string,
   relative: string,
   project = false,
-  limit = 1024 * 1024,
+  limit = MAX_FILE_BYTES,
 ) {
   const file = await checkedPath(root, relative, project);
   const handle = await fs.open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -95,13 +97,26 @@ export async function readSafe(
       throw new AppError("File must be a regular file without links.");
     if (stat.size > limit)
       throw new AppError(
-        `File must be a regular file under ${Math.round(limit / 1024)} KB.`,
+          `${relative} is ${(stat.size / 1024 / 1024).toFixed(1)} MB; files must be under ${Math.round(limit / 1024)} KB.`,
       );
     return await handle.readFile();
   } finally {
     await handle.close();
   }
 }
+
+export async function findOversize(root: string, dir = ""): Promise<string[]> {
+  const out: string[] = [];
+  for (const e of await fs.readdir(path.join(root, dir), { withFileTypes: true })) {
+    if (!allowedEntry(e.name)) continue;
+    const relative = dir ? `${dir}/${e.name}` : e.name;
+    if (e.isDirectory()) out.push(...await findOversize(root, relative));
+    else if (e.isFile() && (await fs.stat(path.join(root, relative))).size > MAX_FILE_BYTES)
+      out.push(relative);
+  }
+  return out;
+}
+
 export async function atomicWrite(
   root: string,
   relative: string,
