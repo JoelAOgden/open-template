@@ -1,4 +1,5 @@
 import { z } from "zod";
+import {RevisionMeta} from "../src/features/versions/useRevision";
 
 const text = z.string().max(40000);
 const label = z.string().min(1).max(200);
@@ -206,7 +207,13 @@ export type Revision = Plan & {
   createdAt: string;
   snapshotHash?: string;
   proposalStatus: Record<string, "accepted" | "discarded">;
+    n: number;
+    hash: string;
+    workflowId: string;
+    appliedAt: string;
+    sectionIds?: string[];
 };
+
 export type Snapshot = {
   hash: string;
   project: Project;
@@ -394,6 +401,7 @@ export type StudioState = {
   busy: boolean;
   runner: RunnerState;
   startInfo: StartInfo;
+  revisions?: RevisionMeta[];
 };
 export type TreeEntry = {
   path: string;

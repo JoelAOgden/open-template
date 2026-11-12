@@ -80,7 +80,7 @@ export class Workflows {
       this.active.sessions = {}; this.active.workspaceRoot = this.store.root;
       await this.persist(this.active);
     }
-    let transaction: { prior: Store["state"] } | undefined;
+    let transaction: { prior: Store["state"], revisions?: { n: number; hash: string; workflowId: string; appliedAt: string; sectionIds?: string[] }[] } | undefined;
     try { transaction = await this.store.load(`${this.dir(id)}/accepting.json`); }
     catch (e) { if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e; }
     if (transaction) {
@@ -160,7 +160,7 @@ export class Workflows {
     if (!Object.hasOwn(initial, launch.filename)) initial = {...initial, [launch.filename]:Buffer.from(launch.stub)};
     const id = randomUUID(), sections = sectionsForDiff(snapshot, before, diff).filter(s => hasSectionContent(snapshot, s.id) || hasSectionContent(before, s.id));
     const singleSectionUpdate = !!this.store.state.appliedSnapshotHash && sections.length === 1
-      && diff.changes.every(change => change.sectionId === sections[0].id);
+        && diff.changes.every(change => change.sectionId === sections[0].id);
     const selection = selectPipeline(before,snapshot,diff,sections,!!this.store.state.appliedSnapshotHash,options.fullSpec);
     const w: Workflow = { acceptancePolicy:options.acceptancePolicy??"manual", ...(options.acceptancePolicy==="automatic"?{pipelineMode:selection.mode,diffStats:selection.stats}:{}), runtimePlatform, workspaceRoot: this.store.root, version: 1, executionMode: "prompt", validationPolicyVersion: 1, runtimePolicyVersion: 1, id, createdAt: stamp(), updatedAt: stamp(), status: "ready", snapshot,
       baselineHash: this.store.state.appliedSnapshotHash, baseSourceHash: manifestHash(base), sourceHash: manifestHash(initial), source: options.source,
@@ -329,8 +329,8 @@ export class Workflows {
   async dismiss(id: string) { const w = this.current(id); if (["accepted", "dismissed"].includes(w.status)) throw new AppError("Workflow already closed.", 409); w.status = "dismissed"; await this.persist(w); }
   private async freezePrompts(w: Workflow, root: string) {
     const names = new Set(w.stages.flatMap(s => s.kind === "section"
-      ? [s.promptTemplate??"section", s.focusTemplate??`section-${sectionFocus(w.sections.find(section => section.id === s.sectionId)?.slug)}`]
-      : [s.promptTemplate??s.kind]));
+        ? [s.promptTemplate??"section", s.focusTemplate??`section-${sectionFocus(w.sections.find(section => section.id === s.sectionId)?.slug)}`]
+        : [s.promptTemplate??s.kind]));
     for (const name of names) {
       const file = `prompts/${name}.md`;
       const text = await fs.readFile(fileURLToPath(new URL(file, import.meta.url)), "utf8");
@@ -347,12 +347,12 @@ export class Workflows {
       template = template.replaceAll("{focus}", focus);
     }
     return template.replaceAll("{project}", JSON.stringify(await this.output(w)))
-      .replaceAll("{diffs}", JSON.stringify(path.join(root, "changes/index.json")))
-      .replaceAll("{section}", JSON.stringify(section?.name ?? ""))
-      .replaceAll("{sectionDiff}", JSON.stringify(path.join(root, `changes/section-${section?.id}.json`)))
-      + `\nRead ../${w.archivedStages?.length ? "prompts/project-guidance.md" : "AGENTS.md"} and ../results/context.json for project guidance and user notes. Work only inside the project directory.\n`
-      + "For local website inspection, use Studio Chromium via the STUDIO_BROWSER_CLIENT environment variable. Read STUDIO_BROWSER_GUIDE for commands; this avoids launching Chromium inside the coding sandbox.\n"
-      + (w.archivedStages?.length ? "This run now uses one implementation prompt per step; this supersedes frozen instructions requiring analysis reports, JSON responses, review gates or recovery agents. Continue from the existing code.\n" : "");
+            .replaceAll("{diffs}", JSON.stringify(path.join(root, "changes/index.json")))
+            .replaceAll("{section}", JSON.stringify(section?.name ?? ""))
+            .replaceAll("{sectionDiff}", JSON.stringify(path.join(root, `changes/section-${section?.id}.json`)))
+        + `\nRead ../${w.archivedStages?.length ? "prompts/project-guidance.md" : "AGENTS.md"} and ../results/context.json for project guidance and user notes. Work only inside the project directory.\n`
+        + "For local website inspection, use Studio Chromium via the STUDIO_BROWSER_CLIENT environment variable. Read STUDIO_BROWSER_GUIDE for commands; this avoids launching Chromium inside the coding sandbox.\n"
+        + (w.archivedStages?.length ? "This run now uses one implementation prompt per step; this supersedes frozen instructions requiring analysis reports, JSON responses, review gates or recovery agents. Continue from the existing code.\n" : "");
   }
   private async execute(w: Workflow, signal: AbortSignal) {
     w.status = "running"; delete w.error; await this.persist(w);
@@ -370,21 +370,21 @@ export class Workflows {
         s.attempts.push(attempt); s.status = "running"; await this.persist(w);
         const a = s.attempts.at(-1)!;
         try {
-            await atomicWrite(root, "results/context.json", JSON.stringify({
-              replies: w.replies, decisions: w.decisions ?? [], existingDecisions: w.decisionContext ?? [],
-              previousUnfinishedWork: (w.archivedStages ?? []).filter(s => ["failed", "blocked"].includes(s.status) && s.attempts.at(-1)?.output)
+          await atomicWrite(root, "results/context.json", JSON.stringify({
+            replies: w.replies, decisions: w.decisions ?? [], existingDecisions: w.decisionContext ?? [],
+            previousUnfinishedWork: (w.archivedStages ?? []).filter(s => ["failed", "blocked"].includes(s.status) && s.attempts.at(-1)?.output)
                 .map(s => ({ step: s.title, response: `../results/${s.id}.json` })),
-            }, null, 2));
-            const controls = await checkedPath(this.store.dataDir, `${this.dir(w.id)}/calls/${s.id}-${a.number}`);
-            await fs.mkdir(controls, { recursive: true });
-            await atomicWrite(controls, "prompt.txt", a.prompt);
-            a.resumedSessionId = w.sessions[s.sessionKey];
-            let logging = Promise.resolve();
-            let logError: unknown;
-            const onEvent = (line: string) => {
-              appendLog(a.logs, line);
-              logging = logging.then(() => fs.appendFile(path.join(controls, "events.jsonl"), line + "\n")).catch(e => { logError = e; });
-            };
+          }, null, 2));
+          const controls = await checkedPath(this.store.dataDir, `${this.dir(w.id)}/calls/${s.id}-${a.number}`);
+          await fs.mkdir(controls, { recursive: true });
+          await atomicWrite(controls, "prompt.txt", a.prompt);
+          a.resumedSessionId = w.sessions[s.sessionKey];
+          let logging = Promise.resolve();
+          let logError: unknown;
+          const onEvent = (line: string) => {
+            appendLog(a.logs, line);
+            logging = logging.then(() => fs.appendFile(path.join(controls, "events.jsonl"), line + "\n")).catch(e => { logError = e; });
+          };
           try {
             let prompt = a.prompt;
             for (let round = 0; ; round++) {
@@ -401,8 +401,8 @@ export class Workflows {
               prompt = `These files exceed ${MAX_FILE_BYTES / 1024} KB and must be shrunk or removed: ${big.join(", ")}. Resize and compress images, update any references, then finish.`;
             }
           } finally { await logging; }
-            if (logError) throw logError;
-            await atomicWrite(root, `results/${s.id}.json`, JSON.stringify(a.output, null, 2));
+          if (logError) throw logError;
+          await atomicWrite(root, `results/${s.id}.json`, JSON.stringify(a.output, null, 2));
           signal.throwIfAborted();
           await this.assertReferences(w);
           if (!writeKinds.has(s.kind) && manifestHash(await this.store.projectManifest(output)) !== beforeHash) { w.integrityFailure = true; throw new Error("A read-only stage modified source. The result cannot advance."); }
@@ -448,6 +448,7 @@ export class Workflows {
     if (!Object.hasOwn(w.referenceHashes, file) && !/^results\/(?:handoff|startup-check|[a-z0-9-]+)\.json$/.test(file)) throw new AppError("Reference file not found.", 404);
     return { path: file, text: (await readSafe(root, file, false, Infinity)).toString() };
   }
+
   async events(id: string, stageId: string, attempt: number, offset: number) {
     const w = await this.get(id), s = [...w.stages, ...w.archivedStages ?? [], ...w.recoveries ?? []].find(s => s.id === stageId);
     if (!s?.attempts.some(a => a.number === attempt)) throw new AppError("Attempt not found.", 404);
@@ -456,10 +457,12 @@ export class Workflows {
     try { const buffer = Buffer.alloc(64 * 1024); const { bytesRead } = await handle.read(buffer, 0, buffer.length, offset); return { text: buffer.subarray(0, bytesRead).toString(), nextOffset: offset + bytesRead }; }
     finally { await handle.close(); }
   }
+
   async accept(id: string) {
     const w = this.current(id);
     await this.commit(w);
   }
+
   private async commit(w:Workflow) {
     const id=w.id;
     if (w.status !== "review" || w.integrityFailure) throw new AppError("Finish the implementation steps before accepting this draft.", 409);
@@ -474,7 +477,22 @@ export class Workflows {
     try {
       await this.replace(this.store.codeDir, base, result);
       await this.store.saveAppliedSnapshot(w.snapshot);
-      this.store.state = { ...prior, appliedSnapshotHash: w.snapshot.hash, implementationPending: false };
+      // Which sections did this version change? Best effort: if the previous
+      // snapshot can't be loaded, leave it undefined and the UI shows the
+      // version under every section. Must never block applying changes.
+      let sectionIds: string[] | undefined;
+      try {
+        const before = await this.store.appliedSnapshot(w.baselineHash);
+        sectionIds = [...new Set(definitionDiff(before, w.snapshot).changes
+            .map(c => c.sectionId).filter((s): s is string => !!s))];
+      } catch {
+        // previous snapshot missing: leave sectionIds undefined
+      }
+      const history = prior.revisions ?? [];
+      const revisions = history.at(-1)?.hash === w.snapshot.hash
+          ? history
+          : [...history, { n: (history.at(-1)?.n ?? 0) + 1, hash: w.snapshot.hash, workflowId: id, appliedAt: stamp(), sectionIds }];
+      this.store.state = { ...prior, appliedSnapshotHash: w.snapshot.hash, revisions, implementationPending: false };
       await this.store.saveState();
       w.status = "accepted"; await this.persist(w);
     } catch (e) {
@@ -488,6 +506,7 @@ export class Workflows {
       try {await saveAIDecisions(this.store,w.decisions);} catch(error){w.error=`Changes applied, but decision notes could not be saved: ${(error as Error).message}`;await this.persist(w);}
     }
   }
+
   private async replace(root: string, before: Manifest, after: Manifest) {
     for (const file of Object.keys(before)) if (!Object.hasOwn(after, file)) await fs.rm(await checkedPath(root, file, true), { force: true });
     // Remove empty ancestors to support file↔directory replacements.
