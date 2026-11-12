@@ -44,6 +44,7 @@ export class Studio {
       workflow: this.workflows.active ? this.workflows.view(this.workflows.active) : null,
       session: this.session, run: this.run,
       appliedSnapshotHash: this.store.state.appliedSnapshotHash,
+      revisions: this.store.state.revisions ?? [],
       checkpoint: this.store.state.checkpoint, draftRunId: this.store.state.draftRunId,
       implementationPending: this.store.state.implementationPending,
       busy: this.busy, runner: this.runner.state, startInfo: await this.runner.info(),
