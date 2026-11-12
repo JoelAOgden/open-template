@@ -13,12 +13,13 @@ import { debugFiles } from "./debug.js";
 import path from "node:path";
 import { z } from "zod";
 import { Studio } from "./studio.js";
+import { definitionDiff } from "./definition-context.js";
 import { AppError, fileTree, isBinary, readSafe } from "./files.js";
 
 export function validateRequest(
-  req: IncomingMessage,
-  port: number,
-  token: string,
+    req: IncomingMessage,
+    port: number,
+    token: string,
 ) {
   const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
   if (!req.headers.host || !hosts.has(req.headers.host))
@@ -31,19 +32,19 @@ export function validateRequest(
   if (req.url?.startsWith("/api/") && req.url !== "/api/bootstrap") {
     const provided = req.headers["x-studio-token"];
     if (
-      typeof provided !== "string" ||
-      !/^[a-f0-9]{64}$/.test(provided) ||
-      !timingSafeEqual(Buffer.from(provided), Buffer.from(token))
+        typeof provided !== "string" ||
+        !/^[a-f0-9]{64}$/.test(provided) ||
+        !timingSafeEqual(Buffer.from(provided), Buffer.from(token))
     )
       throw new AppError(
-        "Missing or invalid local session token. Reload open-template.",
-        403,
+          "Missing or invalid local session token. Reload open-template.",
+          403,
       );
   }
   if (
-    req.method !== "GET" &&
-    req.method !== "HEAD" &&
-    req.headers["content-type"] !== "application/json"
+      req.method !== "GET" &&
+      req.method !== "HEAD" &&
+      req.headers["content-type"] !== "application/json"
   )
     throw new AppError("Mutations require application/json.", 415);
 }
@@ -62,9 +63,9 @@ async function body(req: IncomingMessage, limit = 8 * 1024 * 1024) {
   }
 }
 export function createHttpServer(
-  activeStudio: Studio | null,
-  appRoot: string,
-  options: { dev?: boolean; projects?: Projects; services?: ServiceSetup; desktopClose?: () => void } = {},
+    activeStudio: Studio | null,
+    appRoot: string,
+    options: { dev?: boolean; projects?: Projects; services?: ServiceSetup; desktopClose?: () => void } = {},
 ) {
   const services = options.services ?? new ServiceSetup(appRoot);
   const token = randomBytes(32).toString("hex");
@@ -83,8 +84,8 @@ export function createHttpServer(
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Cache-Control", "no-store");
     res.setHeader(
-      "Content-Security-Policy",
-      `default-src 'self'; script-src 'self'${options.dev ? " 'unsafe-inline'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'${options.dev ? " ws://127.0.0.1:* ws://localhost:*" : ""}; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'`,
+        "Content-Security-Policy",
+        `default-src 'self'; script-src 'self'${options.dev ? " 'unsafe-inline'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'${options.dev ? " ws://127.0.0.1:* ws://localhost:*" : ""}; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'`,
     );
     try {
       const addr = server.address();
@@ -147,21 +148,38 @@ export function createHttpServer(
           }
 
           if (
-            url.pathname === "/api/debug/files" ||
-            url.pathname === "/api/debug/file"
+              url.pathname === "/api/debug/files" ||
+              url.pathname === "/api/debug/file"
           ) {
             const scope = z
-              .enum(["current", "plan"])
-              .parse(url.searchParams.get("scope") ?? "current");
+                .enum(["current", "plan"])
+                .parse(url.searchParams.get("scope") ?? "current");
             const file =
-              url.pathname === "/api/debug/file"
-                ? z.string().min(1).parse(url.searchParams.get("path"))
-                : undefined;
+                url.pathname === "/api/debug/file"
+                    ? z.string().min(1).parse(url.searchParams.get("path"))
+                    : undefined;
             send(await debugFiles(studio.store, studio.session, scope, file));
             return;
           }
           if (url.pathname === "/api/state") {
             send(await studio.state());
+            return;
+          }
+          const revision = /^\/api\/revisions\/(\d+)$/.exec(url.pathname);
+          if (revision) {
+            const list = studio.store.state.revisions ?? [];
+            const i = list.findIndex((r) => r.n === Number(revision[1]));
+            if (i < 0) throw new AppError("Version not found.", 404);
+            const snapshot = await studio.store.appliedSnapshot(list[i].hash);
+            if (!snapshot) throw new AppError("Version snapshot is missing.", 404);
+            const previous = i > 0 ? await studio.store.appliedSnapshot(list[i - 1].hash) : null;
+            const { changes } = definitionDiff(previous, snapshot);
+            send({
+              ...list[i],
+              project: snapshot.project,
+              // drop the heavy patch/description fields; the UI only needs where and what
+              changes: changes.map(({ path, kind, sectionId, documentId, summary }) => ({ path, kind, sectionId, documentId, summary })),
+            });
             return;
           }
           if (url.pathname === "/api/pipelines") {
@@ -197,7 +215,7 @@ export function createHttpServer(
           if (url.pathname.startsWith("/api/runs/")) {
             const id = url.pathname.slice("/api/runs/".length);
             send(
-              studio.run?.id === id ? studio.run : await studio.store.run(id),
+                studio.run?.id === id ? studio.run : await studio.store.run(id),
             );
             return;
           }
@@ -207,17 +225,17 @@ export function createHttpServer(
           }
           if (url.pathname.startsWith("/api/prompts/")) {
             send(
-              await studio.store.prompt(
-                url.pathname.slice("/api/prompts/".length),
-              ),
+                await studio.store.prompt(
+                    url.pathname.slice("/api/prompts/".length),
+                ),
             );
             return;
           }
           if (url.pathname === "/api/file") {
             const data = await readSafe(
-              studio.store.codeDir,
-              url.searchParams.get("path") ?? "",
-              true,
+                studio.store.codeDir,
+                url.searchParams.get("path") ?? "",
+                true,
             );
             send({
               text: isBinary(data) ? null : data.toString(),
@@ -231,21 +249,21 @@ export function createHttpServer(
             if (!/^[a-f0-9]{64}\.(png|jpg|gif|webp|svg)$/.test(asset))
               throw new AppError("Invalid asset.");
             const data = await readSafe(
-              studio.store.dataDir,
-              `assets/${asset}`,
-              false,
-              Infinity,
+                studio.store.dataDir,
+                `assets/${asset}`,
+                false,
+                Infinity,
             );
             assertProject();
             if (asset.endsWith(".svg"))
               res.setHeader(
-                "Content-Security-Policy",
-                "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'none'",
+                  "Content-Security-Policy",
+                  "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'none'",
               );
             res.writeHead(200, {
               "Content-Type": asset.endsWith(".svg")
-                ? "image/svg+xml"
-                : `image/${asset.endsWith(".jpg") ? "jpeg" : asset.split(".").at(-1)}`,
+                  ? "image/svg+xml"
+                  : `image/${asset.endsWith(".jpg") ? "jpeg" : asset.split(".").at(-1)}`,
             });
             res.end(data);
             return;
@@ -256,26 +274,26 @@ export function createHttpServer(
               throw new AppError("Skill not found.", 404);
             send({
               text: (
-                await readSafe(studio.store.skillDir, `skills/${slug}/SKILL.md`)
+                  await readSafe(studio.store.skillDir, `skills/${slug}/SKILL.md`)
               ).toString(),
             });
             return;
           }
         } else if (
-          req.method === "POST" ||
-          req.method === "PUT" ||
-          req.method === "DELETE"
+            req.method === "POST" ||
+            req.method === "PUT" ||
+            req.method === "DELETE"
         ) {
           // Imports and subsequent edits/deletions must support the same amount
           // of content. Keep command endpoints' existing request bound.
           const definitionContent =
-            url.pathname === "/api/definition-import" ||
-            url.pathname === "/api/assets" ||
-            url.pathname.startsWith("/api/documents/") ||
-            url.pathname.startsWith("/api/sections/");
+              url.pathname === "/api/definition-import" ||
+              url.pathname === "/api/assets" ||
+              url.pathname.startsWith("/api/documents/") ||
+              url.pathname.startsWith("/api/sections/");
           const input: unknown = await body(
-            req,
-            definitionContent ? Infinity : undefined,
+              req,
+              definitionContent ? Infinity : undefined,
           );
           const handle = async () => {
             assertProject();
@@ -329,72 +347,72 @@ export function createHttpServer(
             if (req.method === "DELETE") {
               if (url.pathname.startsWith("/api/documents/")) {
                 const id = z
-                  .string()
-                  .uuid()
-                  .parse(url.pathname.slice("/api/documents/".length));
+                    .string()
+                    .uuid()
+                    .parse(url.pathname.slice("/api/documents/".length));
                 const value = z
-                  .object({ version: z.number().int().nonnegative() })
-                  .strict()
-                  .parse(input);
+                    .object({ version: z.number().int().nonnegative() })
+                    .strict()
+                    .parse(input);
                 return studio.store.deleteDocument(id, value.version);
               }
               if (url.pathname.startsWith("/api/sections/")) {
                 const id = z
-                  .string()
-                  .uuid()
-                  .parse(url.pathname.slice("/api/sections/".length));
+                    .string()
+                    .uuid()
+                    .parse(url.pathname.slice("/api/sections/".length));
                 const value = z
-                  .object({
-                    documents: z.array(
-                      z
-                        .object({
-                          id: z.string().uuid(),
-                          version: z.number().int().nonnegative(),
-                        })
-                        .strict(),
-                    ),
-                  })
-                  .strict()
-                  .parse(input);
+                    .object({
+                      documents: z.array(
+                          z
+                              .object({
+                                id: z.string().uuid(),
+                                version: z.number().int().nonnegative(),
+                              })
+                              .strict(),
+                      ),
+                    })
+                    .strict()
+                    .parse(input);
                 return studio.store.deleteSection(id, value.documents);
               }
               throw new AppError("Endpoint not found.", 404);
             }
             if (url.pathname === "/api/sections" && req.method === "POST")
               return studio.store.addSection(
-                z
-                  .object({ name: z.string().trim().min(1).max(70) })
-                  .strict()
-                  .parse(input).name,
+                  z
+                      .object({ name: z.string().trim().min(1).max(70) })
+                      .strict()
+                      .parse(input).name,
               );
             if (
-              url.pathname === "/api/definition-import" &&
-              req.method === "POST"
+                url.pathname === "/api/definition-import" &&
+                req.method === "POST"
             )
               return studio.store.importFiles(input);
             if (url.pathname === "/api/documents" && req.method === "POST") {
               const v = z
-                .object({
-                  sectionId: z.string(),
-                  title: z.string().trim().min(1).max(200),
-                })
-                .strict()
-                .parse(input);
+                  .object({
+                    sectionId: z.string(),
+                    title: z.string().trim().min(1).max(200),
+                  })
+                  .strict()
+                  .parse(input);
               return studio.store.addDocument(v.sectionId, v.title);
             }
             if (
-              url.pathname.startsWith("/api/documents/") &&
-              req.method === "PUT"
+                url.pathname.startsWith("/api/documents/") &&
+                req.method === "PUT"
             )
               return studio.store.saveDocument(
-                url.pathname.slice("/api/documents/".length),
-                input,
+                  url.pathname.slice("/api/documents/".length),
+                  input,
               );
             if (url.pathname === "/api/project") {
               const v = z
-                .object({ name: z.string().trim().min(1).max(80) })
-                .strict()
-                .parse(input);
+                  .object({ name: z.string().trim().min(1).max(80) })
+                  .strict()
+                  .parse(input);
               studio.store.project.name = v.name;
               await studio.store.saveProject();
               return {};
@@ -402,20 +420,20 @@ export function createHttpServer(
             if (url.pathname === "/api/assets")
               return {
                 assetId: await studio.store.saveImage(
-                  z.object({ base64: z.string() }).strict().parse(input).base64,
+                    z.object({ base64: z.string() }).strict().parse(input).base64,
                 ),
               };
             if (url.pathname === "/api/start") {
               if (studio.busy)
                 throw new AppError(
-                  "Wait for the preview to finish starting.",
-                  409,
+                    "Wait for the preview to finish starting.",
+                    409,
                 );
               await studio.startProject(
-                z
-                  .object({ scriptHash: z.string().length(64) })
-                  .strict()
-                  .parse(input).scriptHash,
+                  z
+                      .object({ scriptHash: z.string().length(64) })
+                      .strict()
+                      .parse(input).scriptHash,
               );
               return {};
             }
@@ -439,10 +457,10 @@ export function createHttpServer(
       // Explicit frontend allowlist: never serve definitions, credentials, or generated code.
       if (options.dev && vite) {
         if (
-          !/^\/(?:$|index\.html$|src\/|shared\/|@vite\/|@react-refresh$|@fs\/.*\/node_modules\/|node_modules\/vite\/dist\/client\/env\.mjs$|node_modules\/\.vite\/deps\/)/.test(
-            url.pathname,
-          ) ||
-          /(?:^|\/)\.{1,2}(?:\/|$)/.test(decodeURIComponent(url.pathname))
+            !/^\/(?:$|index\.html$|src\/|shared\/|@vite\/|@react-refresh$|@fs\/.*\/node_modules\/|node_modules\/vite\/dist\/client\/env\.mjs$|node_modules\/\.vite\/deps\/)/.test(
+                url.pathname,
+            ) ||
+            /(?:^|\/)\.{1,2}(?:\/|$)/.test(decodeURIComponent(url.pathname))
         )
           throw new AppError("Not found.", 404);
         vite.middlewares(req, res, () => {
@@ -452,19 +470,19 @@ export function createHttpServer(
         return;
       }
       if (
-        url.pathname !== "/" &&
-        url.pathname !== "/index.html" &&
-        !/^\/assets\/[\w.-]+\.(js|css)$/.test(url.pathname)
+          url.pathname !== "/" &&
+          url.pathname !== "/index.html" &&
+          !/^\/assets\/[\w.-]+\.(js|css)$/.test(url.pathname)
       )
         throw new AppError("Not found.", 404);
       const file = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
       const data = await fs.readFile(path.join(appRoot, "dist", file));
       res.writeHead(200, {
         "Content-Type": file.endsWith(".js")
-          ? "text/javascript"
-          : file.endsWith(".css")
-            ? "text/css"
-            : "text/html",
+            ? "text/javascript"
+            : file.endsWith(".css")
+                ? "text/css"
+                : "text/html",
       });
       res.end(data);
     } catch (e) {
@@ -500,22 +518,22 @@ export function createHttpServer(
 function respondError(res: ServerResponse, e: unknown) {
   const error = e as Error & { code?: string };
   const status =
-    e instanceof AppError
-      ? e.status
-      : e instanceof z.ZodError
-        ? 400
-        : error.code === "ENOENT"
-          ? 404
-          : 500;
+      e instanceof AppError
+          ? e.status
+          : e instanceof z.ZodError
+              ? 400
+              : error.code === "ENOENT"
+                  ? 404
+                  : 500;
   const message =
-    e instanceof z.ZodError
-      ? `Invalid data: ${e.issues
-          .slice(0, 3)
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join("; ")}`
-      : status === 500
-        ? "Local operation failed. Check the server terminal."
-        : error.message;
+      e instanceof z.ZodError
+          ? `Invalid data: ${e.issues
+              .slice(0, 3)
+              .map((i) => `${i.path.join(".")}: ${i.message}`)
+              .join("; ")}`
+          : status === 500
+              ? "Local operation failed. Check the server terminal."
+              : error.message;
   if (status === 500) console.error(error);
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: message }));
