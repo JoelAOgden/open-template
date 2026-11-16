@@ -132,6 +132,23 @@ export function createHttpServer(
           throw new AppError("Create or open a project before continuing.",409);
         }
         const studio = activeStudio;
+        // A paid read-only request must not hold the workspace mutation queue.
+        // Definitions are changed only when the editor accepts and saves the result.
+        if (req.method === "POST" && url.pathname === "/api/block-ai") {
+          const input = await body(req);
+          assertProject();
+          const controller = new AbortController();
+          const abort = () => controller.abort();
+          res.once("close", abort);
+          try {
+            const result = await studio.blockAI.generate(input, controller.signal);
+            assertProject();
+            send(result);
+          } catch (error) {
+            if (!controller.signal.aborted) throw error;
+          } finally { res.removeListener("close", abort); }
+          return;
+        }
         if (req.method === "GET") {
           if (url.pathname === "/api/services/status") {
             send(await services.status(ProviderSchema.parse(url.searchParams.get("provider")))); return;

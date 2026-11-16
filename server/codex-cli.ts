@@ -11,7 +11,7 @@ import { terminateTree } from "./processes.js";
 import { cliEnvironment, resolveCli, cliInvocation } from "./cli-path.js";
 import { AppError, readSafe } from "./files.js";
 
-export type CodexCall = { cwd: string; prompt: string; writable: boolean; sessionId?: string; settings: AgentSettings;
+export type CodexCall = { cwd: string; prompt: string; writable: boolean; sessionId?: string; settings: AgentSettings; skipGitRepoCheck?: boolean; browser?: boolean;
   schemaFile?: string; resultFile: string; signal: AbortSignal; onEvent: (line: string) => void; onSession: (id: string) => void };
 export interface CodingAgent {
   status(settings?: AgentSettings): Promise<{ available: boolean; version?: string; error?: string }>;
@@ -27,6 +27,7 @@ export function codexArguments(call: CodexCall): string[] {
   args.push("exec");
   if (call.sessionId) { z.string().uuid().parse(call.sessionId); args.push("resume", call.sessionId); }
   args.push("--ignore-user-config", "--ignore-rules", "--json");
+  if (call.skipGitRepoCheck) args.push("--skip-git-repo-check");
   if (call.schemaFile) args.push("--output-schema", call.schemaFile);
   args.push("-o", call.resultFile, "-");
   return args;
@@ -89,7 +90,7 @@ export class CodexCLI implements CodingAgent {
     env.TMPDIR = path.join(call.cwd, ".studio-tmp");
     await fs.mkdir(env.TMPDIR, { recursive: true });
     let browser: Awaited<ReturnType<typeof startBrowserBridge>> | undefined;
-    if (call.writable) {
+    if (call.writable && call.browser !== false) {
       try {
         browser = await this.browserBridge(call.signal, text => call.onEvent(`Studio browser: ${text}`));
         Object.assign(env, browser.env, {

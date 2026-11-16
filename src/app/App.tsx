@@ -435,6 +435,7 @@ Replace them to give the agent your requirements. Build anyway?`)) return;
           >
             {document && section ? (
               <Editor
+                provider={state.settings.provider}
                 key={document.id}
                 ref={editorRef}
                 document={document}

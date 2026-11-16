@@ -22,10 +22,13 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import type { DocNode, Document } from "../../../shared/model";
+import type { Provider } from "../../../shared/agent-settings";
 import { EditorBlock } from "./EditorBlock";
+import { BlockAIDialog, ImageBlockChoice } from "./BlockAIDialog";
 
 export type EditorHandle = { flush: () => Promise<void>; };
 type Props = {
+  provider?: Provider;
   document: Document;
   onSaved: () => void;
   onError: (s: string) => void;
@@ -34,7 +37,7 @@ type Props = {
   actions?: React.ReactNode;
 };
 export const Editor = forwardRef<EditorHandle, Props>(function Editor(
-  { document, onSaved, onError, onStatus, onImage, actions },
+  { document, onSaved, onError, onStatus, onImage, actions, provider },
   ref,
 ) {
   const { doc, current, flush, update } = useDocumentDraft(document, { onSaved, onError, onStatus });
@@ -48,6 +51,20 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
   });
   const [format, setFormat] = useState(false),
     [selected, setSelected] = useState<string | null>(null);
+  const [imageChoice, setImageChoice] = useState(false);
+  const [ai, setAI] = useState<{ document: Document; block: DocNode | null } | null>(null);
+  const applyAI = (next: DocNode) => {
+    if (!ai || ai.document.id !== current.current.id) throw new Error("The document changed. Open the AI prompt again.");
+    if (ai.block) {
+      const existing = current.current.nodes.find(n => n.id === ai.block!.id)
+        ?? (current.current.nodes.length === 0 && ai.block.id === emptyNode.current.id ? emptyNode.current : undefined);
+      if (JSON.stringify(existing) !== JSON.stringify(ai.block)) throw new Error("This block changed while AI was working. Cancel and try again with the latest content.");
+      updateNode(ai.block.id, next);
+    } else {
+      update({ ...current.current, nodes: [...current.current.nodes, next] });
+    }
+    setSelected(next.id);
+  };
   useImperativeHandle(ref, () => ({ flush }));
   const updateNode = (id: string, next: DocNode) =>
     update({
@@ -199,7 +216,7 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
       <div className="document-nodes">
         {(doc.nodes.length ? doc.nodes : [emptyNode.current]).map(
           (node, index) => (
-            <EditorBlock key={node.id} node={node} index={index} selected={selected} onSelect={setSelected} onChange={next => updateNode(node.id, next)} onRemove={() => update({ ...current.current, nodes: current.current.nodes.filter(n => n.id !== node.id) })} />
+            <EditorBlock key={node.id} node={node} index={index} selected={selected} onSelect={setSelected} onChange={next => updateNode(node.id, next)} onRemove={() => update({ ...current.current, nodes: current.current.nodes.filter(n => n.id !== node.id) })} onAI={() => setAI({ document: structuredClone(current.current), block: structuredClone(node) })} />
           ),
         )}
       </div>
@@ -207,11 +224,13 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
         <span className="add-block-label"><Plus size={16} aria-hidden="true" /> Add block</span>
         <div className="add-buttons">
           <Button onClick={() => add("text")}><Type size={15} aria-hidden="true" />Text</Button>
-          <Button onClick={onImage}><ImagePlus size={15} aria-hidden="true" />Image</Button>
+          <Button onClick={() => setImageChoice(true)}><ImagePlus size={15} aria-hidden="true" />Image</Button>
           <Button onClick={() => add("list")}><List size={15} aria-hidden="true" />List</Button>
           <Button onClick={() => add("table")}><Table2 size={15} aria-hidden="true" />Table</Button>
         </div>
       </div>
+      {imageChoice && <ImageBlockChoice provider={provider} onClose={() => setImageChoice(false)} onUpload={() => { setImageChoice(false); onImage(); }} onGenerate={() => { setImageChoice(false); setAI({ document: structuredClone(current.current), block: null }); }} />}
+      {ai && <BlockAIDialog provider={provider} document={ai.document} block={ai.block} onApply={applyAI} onClose={() => setAI(null)} />}
     </div>
   );
 });

@@ -9,6 +9,7 @@ import { appendLog } from "./processes.js";
 import { Workflows } from "./workflow.js";
 import type { CodingAgent } from "./codex-cli.js";
 import { PipelineHistory } from "./pipeline-history.js";
+import { BlockAI } from "./block-ai.js";
 
 // Editor, preview and fixed workflow orchestration.
 export class Studio {
@@ -21,10 +22,12 @@ export class Studio {
   workflows: Workflows;
   runner: Runner;
   pipelines: PipelineHistory;
+  blockAI: BlockAI;
   private previewController: AbortController | null = null;
   private previewJob: Promise<void> | null = null;
   constructor(public store: Store, agent?: CodingAgent) {
     this.agent = agent;
+    this.blockAI = new BlockAI(store, agent);
     this.workflows = new Workflows(store, agent);
     this.runner = new Runner(store.codeDir, undefined, store.layout === "folder" ? "project" : "project_src");
     this.pipelines = new PipelineHistory(store);
@@ -54,8 +57,10 @@ export class Studio {
     const next = new Studio(store, this.agent);
     await next.init();
     await this.stopProject();
+    await this.blockAI.stop();
     const mutationQueue = this.workflows.mutateDefinitions;
     this.store = next.store; this.workflows = next.workflows; this.runner = next.runner; this.pipelines = next.pipelines;
+    this.blockAI = next.blockAI;
     this.session = next.session; this.run = next.run; this.workspaceKey = randomUUID();
     this.workflows.mutateDefinitions = mutationQueue;
     this.previewController = null; this.previewJob = null;
@@ -94,5 +99,5 @@ export class Studio {
     await this.runner.stop();
     await this.previewJob;
   }
-  async close() { await this.workflows.stop(); await this.stopProject(); }
+  async close() { await this.blockAI.stop(); await this.workflows.stop(); await this.stopProject(); }
 }

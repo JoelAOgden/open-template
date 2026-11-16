@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 import { CodexCLI, codexArguments, type CodexCall } from "../server/codex-cli.js";
 
-async function fixture(t: test.TestContext, fail = false) {
+async function fixture(t: test.TestContext, fail = false, requireNonGitFlag = false) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "studio-cli-"));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const binary = path.join(root, "fake-codex.mjs");
@@ -15,6 +15,9 @@ const args=process.argv.slice(2);
 if(args.includes('--version')) { console.log('fixture'); }
 else if(args.includes('--help')) { console.log('--ignore-user-config --ignore-rules --output-last-message --json'); }
 else {
+  if (${requireNonGitFlag} && !fs.existsSync('.git') && !args.includes('--skip-git-repo-check')) {
+    console.error('Not inside a trusted directory and --skip-git-repo-check was not specified.'); process.exit(1);
+  }
   if(args.includes('--output-schema')) throw new Error('Unexpected response schema');
   let prompt=''; for await (const chunk of process.stdin) prompt+=chunk;
   fs.writeFileSync(${JSON.stringify(path.join(root,"input.txt"))}, prompt);
@@ -59,4 +62,17 @@ test("read-only CLI calls do not receive a browser capability",async t=>{
  await agent.run(call);
  assert.deepEqual(JSON.parse(await fs.readFile(path.join(root,"browser-env.json"),"utf8")),{});
  assert.equal(browserClosed(),false);
+});
+
+test("block scratch calls explicitly opt out of the Git check while retaining read-only restrictions", async t => {
+  const { call, agent } = await fixture(t, false, true);
+  call.writable = false;
+  assert.equal(codexArguments(call).includes("--skip-git-repo-check"), false);
+  await assert.rejects(agent.run(call), /Not inside a trusted directory/);
+  call.skipGitRepoCheck = true;
+  const args = codexArguments(call);
+  assert.ok(args.includes("--skip-git-repo-check"));
+  assert.ok(args.includes('sandbox_mode="read-only"'));
+  assert.ok(args.includes("sandbox_workspace_write.network_access=false"));
+  assert.equal((await agent.run(call)).status, "completed");
 });

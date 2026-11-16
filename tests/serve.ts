@@ -10,6 +10,18 @@ const projects = new Projects(root); await projects.init();
 const studio = new Studio(new Store(path.join(root,"projects","fixture"),"folder"), {
   async status() { return { available: true }; },
   async run(call) {
+    if (call.prompt.startsWith("Help the user write one specification")) {
+      const context = JSON.parse(await fs.readFile(path.join(call.cwd, "context.json"), "utf8"));
+      const type = context.block?.type ?? "image";
+      if (type === "image") {
+        await fs.writeFile(path.join(call.cwd, "generated-image.png"), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j1ioAAAAASUVORK5CYII=", "base64"));
+        return { status: "completed", summary: JSON.stringify({ imagePath: "generated-image.png", alt: "AI blue circle" }), requirements: [], findings: [] };
+      }
+      const content = type === "list" ? { items: ["Generated first item", "Generated second item"] }
+        : type === "table" ? { rows: [["Name", "Purpose"], ["Generated row", "Example"]] }
+        : { text: "AI revised specification content" };
+      return { status: "completed", summary: JSON.stringify(content), requirements: [], findings: [] };
+    }
     call.onSession(call.sessionId ?? (await import("node:crypto")).randomUUID());
     call.onEvent(JSON.stringify({type:"item.completed",item:{type:"agent_message",text:"I’m arranging the navigation."}}));
     await new Promise(resolve => setTimeout(resolve, 100));
