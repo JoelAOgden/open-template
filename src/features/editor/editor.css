@@ -300,3 +300,20 @@
 }
 
 .add-block-label { color: var(--text); }
+
+.block-ai-action {
+  margin-top: var(--space-px-6);
+  color: var(--muted);
+}
+
+.block-ai-dialog {
+  width: min(640px, calc(100vw - var(--space-px-36)));
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.block-ai-dialog textarea { width: 100%; margin-top: var(--space-px-8); }
+.block-ai-dialog .actions { margin-top: var(--space-px-12); flex-wrap: wrap; }
+.block-ai-preview { margin-top: var(--space-px-18); padding: var(--space-px-14); border: 1px solid var(--line); border-radius: var(--radius-8); }
+.block-ai-preview img { display: block; max-width: 100%; max-height: 360px; margin: auto; }
+.block-ai-text { white-space: pre-wrap; overflow-wrap: anywhere; }

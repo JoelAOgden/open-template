@@ -1,13 +1,14 @@
 import type { DocNode } from '../../../shared/model';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Fields';
-import { Trash2, List, Plus } from 'lucide-react';
+import { Trash2, List, Plus, Sparkles } from 'lucide-react';
 import { Asset, WritingArea } from './EditorBlocks';
-export function EditorBlock({ node, index, selected, onSelect, onRemove, onChange }: { node: DocNode; index: number; selected: string | null; onSelect: (id: string) => void; onRemove: () => void; onChange: (node: DocNode) => void ;}) {
+export function EditorBlock({ node, index, selected, onSelect, onRemove, onChange, onAI }: { node: DocNode; index: number; selected: string | null; onSelect: (id: string) => void; onRemove: () => void; onChange: (node: DocNode) => void; onAI: () => void; }) {
   return (<div
     id={`node-${node.id}`}
     className={`editor-node node-${node.type} ${selected === node.id ? "selected" : ""}`}
     onFocus={() => onSelect(node.id)}
+    onClick={() => onSelect(node.id)}
   >
     <Button
       iconOnly className="node-delete"
@@ -171,5 +172,6 @@ export function EditorBlock({ node, index, selected, onSelect, onRemove, onChang
         />
       </figure>
     )}
+    {selected === node.id && <Button variant="quiet" size="small" className="block-ai-action" onClick={onAI} aria-label={`Ask AI about ${node.type} block ${index + 1}`}><Sparkles size={13} aria-hidden="true" />Ask AI</Button>}
   </div>);
 }

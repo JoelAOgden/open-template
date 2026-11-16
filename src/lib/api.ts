@@ -52,8 +52,10 @@ export async function api<T>(
   route: string,
   body?: unknown,
   method = "POST",
+  signal?: AbortSignal,
 ): Promise<T> {
   const response = await request(route, {
+    signal,
     method: body === undefined ? "GET" : method,
     headers: {
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),

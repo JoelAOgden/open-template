@@ -37,6 +37,8 @@ Setup downloads the provider CLI tools. Choose a provider in Settings and sign i
 
 For browser development, run `npm run dev` and open http://127.0.0.1:4310.
 
+Select a specification block to reveal **Ask AI**. Use a prompt to create or revise text, lists, tables, or images, then preview the result and choose **Use content** to save it. Adding an Image block offers **Upload image** or **Generate with AI**. Image generation is disabled when Claude is selected; the image controls explain how to switch providers or upload an image. Claude still supports text, lists, and tables. Image requests follow your prompt without imposing an image type. The selected provider must have an image-generation tool available; missing image-tool setup is reported without switching providers or using an extra API key. Requests use the provider and model selected in Settings with your existing CLI authentication. Cancel closes the prompt and stops an active request without replacing the block.
+
 ## Build and check
 
 ```sh
