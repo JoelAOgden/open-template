@@ -219,7 +219,16 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
     <fieldset className="document-nodes" disabled={readOnly}>
         {(doc.nodes.length ? doc.nodes : [emptyNode.current]).map(
             (node, index) => (
-                <EditorBlock key={node.id} node={node} index={index} selected={selected} onSelect={setSelected} onChange={next => updateNode(node.id, next)} onRemove={() => update({ ...current.current, nodes: current.current.nodes.filter(n => n.id !== node.id) })} />
+                <EditorBlock
+                    key={node.id}
+                    node={node}
+                    index={index}
+                    selected={selected}
+                    onSelect={setSelected}
+                    onChange={next => updateNode(node.id, next)}
+                    onRemove={() => update({ ...current.current, nodes: current.current.nodes.filter(n => n.id !== node.id) })}
+                    onAI={() => setAI({ document: current.current, block: node })}
+                />
             ),
         )}
       </fieldset>
@@ -228,17 +237,19 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor(
             <span>Past version, read only. Go to Draft to make changes.</span>
         </div>
     ) : (
-      <div className="add-content" role="group" aria-label="Add content">
-        <span className="add-block-label"><Plus size={16} aria-hidden="true" /> Add block</span>
-        <div className="add-buttons">
-          <Button onClick={() => add("text")}><Type size={15} aria-hidden="true" />Text</Button>
-          <Button onClick={() => setImageChoice(true)}><ImagePlus size={15} aria-hidden="true" />Image</Button>
-          <Button onClick={() => add("list")}><List size={15} aria-hidden="true" />List</Button>
-          <Button onClick={() => add("table")}><Table2 size={15} aria-hidden="true" />Table</Button>
+        <div className="add-content" role="group" aria-label="Add content">
+          <span className="add-block-label"><Plus size={16} aria-hidden="true" /> Add block</span>
+          <div className="add-buttons">
+            <Button onClick={() => add("text")}><Type size={15} aria-hidden="true" />Text</Button>
+            <Button onClick={() => setImageChoice(true)}><ImagePlus size={15} aria-hidden="true" />Image</Button>
+            <Button onClick={() => add("list")}><List size={15} aria-hidden="true" />List</Button>
+            <Button onClick={() => add("table")}><Table2 size={15} aria-hidden="true" />Table</Button>
+          </div>
         </div>
-      </div>
     )}
-</div>
+      {imageChoice && <ImageBlockChoice provider={provider} onClose={() => setImageChoice(false)} onUpload={() => { setImageChoice(false); onImage(); }} onGenerate={() => { setImageChoice(false); setAI({ document: structuredClone(current.current), block: null }); }} />}
+      {ai && <BlockAIDialog provider={provider} document={ai.document} block={ai.block} onApply={applyAI} onClose={() => setAI(null)} />}
+    </div>
   );
 });
 function documentElement(id: string) {
