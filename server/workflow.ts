@@ -485,8 +485,9 @@ export class Workflows {
         const before = await this.store.appliedSnapshot(w.baselineHash);
         sectionIds = [...new Set(definitionDiff(before, w.snapshot).changes
             .map(c => c.sectionId).filter((s): s is string => !!s))];
-      } catch {
+      } catch(e) {
         // previous snapshot missing: leave sectionIds undefined
+        console.warn("Could not compute sectionIds for revision:", (e as Error).message);
       }
       const history = prior.revisions ?? [];
       const revisions = history.at(-1)?.hash === w.snapshot.hash
