@@ -48,43 +48,43 @@ const paragraph = (text = ""): DocNode => ({
   color: "default",
 });
 const escapeTable = (s: string) =>
-  s.replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+    s.replace(/\|/g, "\\|").replace(/\n/g, "<br>");
 export function markdown(project: Project) {
   const result: Record<string, string> = {};
   for (const section of project.sections) {
     for (const doc of project.documents.filter(
-      (d) => d.sectionId === section.id,
+        (d) => d.sectionId === section.id,
     )) {
       const content = doc.nodes
-        .map((n) => {
-          const content = (() => {
-          switch (n.type) {
-            case "text":
-              return n.bold
-                ? `**${n.text}**`
-                : n.italic
-                  ? `*${n.text}*`
-                  : n.text;
-            case "heading":
-              return `${"#".repeat(Number(n.level))} ${n.text}`;
-            case "list":
-              return n.items
-                .map((t, i) => `${n.ordered ? i + 1 + "." : "-"} ${t}`)
-                .join("\n");
-            case "image":
-              return `![${n.alt.replace(/[\[\]\n]/g, "")}](../../assets/${n.assetId})`;
-            case "table":
-              return n.rows
-                .map(
-                  (r, i) =>
-                    `| ${r.map(escapeTable).join(" | ")} |${i === 0 ? "\n| " + r.map(() => "---").join(" | ") + " |" : ""}`,
-                )
-                .join("\n");
-          }
-          })();
-          return n.title?.trim() ? `## ${n.title.trim()}\n\n${content}` : content;
-        })
-        .join("\n\n");
+          .map((n) => {
+            const content = (() => {
+              switch (n.type) {
+                case "text":
+                  return n.bold
+                      ? `**${n.text}**`
+                      : n.italic
+                          ? `*${n.text}*`
+                          : n.text;
+                case "heading":
+                  return `${"#".repeat(Number(n.level))} ${n.text}`;
+                case "list":
+                  return n.items
+                      .map((t, i) => `${n.ordered ? i + 1 + "." : "-"} ${t}`)
+                      .join("\n");
+                case "image":
+                  return `![${n.alt.replace(/[\[\]\n]/g, "")}](../../assets/${n.assetId})`;
+                case "table":
+                  return n.rows
+                      .map(
+                          (r, i) =>
+                              `| ${r.map(escapeTable).join(" | ")} |${i === 0 ? "\n| " + r.map(() => "---").join(" | ") + " |" : ""}`,
+                      )
+                      .join("\n");
+              }
+            })();
+            return n.title?.trim() ? `## ${n.title.trim()}\n\n${content}` : content;
+          })
+          .join("\n\n");
       result[`${section.slug}/${doc.id}.md`] = `# ${doc.title}\n\n${content}\n`;
     }
   }
@@ -103,6 +103,7 @@ export class Store {
     checkpoint?: CheckpointInfo;
     draftRunId?: string;
     implementationPending?: boolean;
+    revisions?: { n: number; hash: string; workflowId: string; appliedAt: string; sectionIds?: string[] }[];
   } = { appliedSnapshotHash: null, sessionId: null, runId: null };
   constructor(public root: string, public layout: "legacy" | "folder" = "legacy") {
     this.dataDir = path.join(root, layout === "folder" ? ".project-studio" : ".project-ide");
@@ -117,11 +118,11 @@ export class Store {
     await ensureRoot(this.skillDir);
     try {
       this.project = ProjectSchema.parse(
-        JSON.parse(
-          (
-            await readSafe(this.dataDir, "project.json", false, Infinity)
-          ).toString(),
-        ),
+          JSON.parse(
+              (
+                  await readSafe(this.dataDir, "project.json", false, Infinity)
+              ).toString(),
+          ),
       );
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -138,7 +139,7 @@ export class Store {
     }
     try {
       this.state = JSON.parse(
-        (await readSafe(this.dataDir, "state.json")).toString(),
+          (await readSafe(this.dataDir, "state.json")).toString(),
       );
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -180,7 +181,7 @@ export class Store {
     if (this.project.sections.length >= 50)
       throw new AppError("Maximum 50 sections.");
     const sectionId = randomUUID(),
-      docId = randomUUID();
+        docId = randomUUID();
     this.project.sections.push({
       id: sectionId,
       slug,
@@ -205,9 +206,9 @@ export class Store {
       await fs.access(file);
     } catch {
       await atomicWrite(
-        this.skillDir,
-        relative,
-        `---\nname: ${slug}\ndescription: ${JSON.stringify(`Interpret the ${name} section of this project's definition.`)}\n---\n\n# ${name.replace(/[\r\n]/g, " ")}\n\nUse the supplied ${slug} documents as requirements. Preserve explicit user choices. Read .project-studio/workspace/spec/index.json when this is a folder project to find the current documents. Explain product assumptions concisely in AI decisions. Propose definition changes separately; never edit authoritative definitions or skills. Implement the requested changes in the supplied project working directory.\n`,
+          this.skillDir,
+          relative,
+          `---\nname: ${slug}\ndescription: ${JSON.stringify(`Interpret the ${name} section of this project's definition.`)}\n---\n\n# ${name.replace(/[\r\n]/g, " ")}\n\nUse the supplied ${slug} documents as requirements. Preserve explicit user choices. Read .project-studio/workspace/spec/index.json when this is a folder project to find the current documents. Explain product assumptions concisely in AI decisions. Propose definition changes separately; never edit authoritative definitions or skills. Implement the requested changes in the supplied project working directory.\n`,
       );
     }
   }
@@ -234,7 +235,7 @@ export class Store {
       nodes,
       assetRefs: [
         ...new Set(
-          nodes.flatMap((node) => node.type === "image" ? [node.assetId] : []),
+            nodes.flatMap((node) => node.type === "image" ? [node.assetId] : []),
         ),
       ],
       version: 0,
@@ -266,15 +267,15 @@ export class Store {
       throw new AppError("Document identity cannot change.");
     if (doc.version !== existing.version)
       throw new AppError(
-        "This document changed elsewhere. Reload before saving.",
-        409,
+          "This document changed elsewhere. Reload before saving.",
+          409,
       );
     const ids = new Set(doc.nodes.map((n) => n.id));
     if (ids.size !== doc.nodes.length)
       throw new AppError("Node IDs must be unique.");
     doc.assetRefs = [
       ...new Set(
-        doc.nodes.flatMap((n) => (n.type === "image" ? [n.assetId] : [])),
+          doc.nodes.flatMap((n) => (n.type === "image" ? [n.assetId] : [])),
       ),
     ];
     for (const asset of doc.assetRefs)
@@ -298,31 +299,31 @@ export class Store {
     if (!doc) throw new AppError("Document not found.", 404);
     if (doc.version !== version)
       throw new AppError(
-        "This document changed elsewhere. Reload before deleting.",
-        409,
+          "This document changed elsewhere. Reload before deleting.",
+          409,
       );
     return this.removeDefinitions([doc]);
   }
   async importFiles(value: unknown) {
     const { target, files } = ImportSchema.parse(value);
     const existing =
-      target.kind === "document"
-        ? this.project.documents.find((doc) => doc.id === target.id)
-        : undefined;
+        target.kind === "document"
+            ? this.project.documents.find((doc) => doc.id === target.id)
+            : undefined;
     if (target.kind === "document") {
       if (!existing) throw new AppError("Document not found.", 404);
       if (existing.version !== target.version)
         throw new AppError(
-          "This document changed elsewhere. Reload before importing.",
-          409,
+            "This document changed elsewhere. Reload before importing.",
+            409,
         );
     }
     const section = this.project.sections.find(
-      (s) => s.id === (existing?.sectionId ?? target.id),
+        (s) => s.id === (existing?.sectionId ?? target.id),
     );
     if (!section) throw new AppError("Section not found.", 404);
     const sectionDocuments = this.project.documents.filter(
-      (doc) => doc.sectionId === section.id,
+        (doc) => doc.sectionId === section.id,
     );
     const replaced = new Set<string>();
     const replacements = files.map((file) => {
@@ -332,15 +333,15 @@ export class Store {
         return undefined;
       }
       const matches = sectionDocuments.filter(
-        (doc) => importNameKey(doc.title) === importNameKey(file.name),
+          (doc) => importNameKey(doc.title) === importNameKey(file.name),
       );
       if (file.resolution?.action === "replace") {
         const choice = file.resolution;
         const doc = matches.find((doc) => doc.id === choice.documentId);
         if (!doc || doc.version !== choice.version)
           throw new AppError(
-            `${file.name}: the document changed. Import again to review replacement.`,
-            409,
+              `${file.name}: the document changed. Import again to review replacement.`,
+              409,
           );
         if (replaced.has(doc.id))
           throw new AppError(`${file.name}: choose only one replacement for each document.`);
@@ -349,26 +350,26 @@ export class Store {
       }
       if (matches.length && !file.resolution)
         throw new AppError(
-          `${file.name} already exists. Import again and choose Replace or Keep both.`,
-          409,
+            `${file.name} already exists. Import again and choose Replace or Keep both.`,
+            409,
         );
       return undefined;
     });
     const prepared = prepareImports(files);
     const usedNames = new Set(sectionDocuments.map((doc) => importNameKey(doc.title)));
     const makeDocument = (doc: Document) =>
-      DocumentSchema.parse({
-        ...doc,
-        assetRefs: [
-          ...new Set(
-            doc.nodes.flatMap((node) =>
-              node.type === "image" ? [node.assetId] : [],
+        DocumentSchema.parse({
+          ...doc,
+          assetRefs: [
+            ...new Set(
+                doc.nodes.flatMap((node) =>
+                    node.type === "image" ? [node.assetId] : [],
+                ),
             ),
-          ),
-        ],
-      });
+          ],
+        });
     const documents = existing
-      ? [
+        ? [
           makeDocument({
             ...existing,
             version: existing.version + 1,
@@ -378,15 +379,15 @@ export class Store {
             ],
           }),
         ]
-      : prepared.map((file, index) =>
-          makeDocument({
-            id: replacements[index]?.id ?? randomUUID(),
-            sectionId: section.id,
-            title: replacements[index]?.title ?? availableImportName(file.name, usedNames),
-            nodes: file.nodes,
-            assetRefs: [],
-            version: replacements[index] ? replacements[index].version + 1 : 0,
-          }),
+        : prepared.map((file, index) =>
+            makeDocument({
+              id: replacements[index]?.id ?? randomUUID(),
+              sectionId: section.id,
+              title: replacements[index]?.title ?? availableImportName(file.name, usedNames),
+              nodes: file.nodes,
+              assetRefs: [],
+              version: replacements[index] ? replacements[index].version + 1 : 0,
+            }),
         );
     const previous = this.project;
     const existingIds = new Set(previous.documents.map((doc) => doc.id));
@@ -395,17 +396,17 @@ export class Store {
     const next = {
       ...previous,
       sections: existing
-        ? previous.sections
-        : previous.sections.map((s) =>
-            s.id === section.id
-              ? {
-                  ...s,
-                  documentIds: [
-                    ...s.documentIds,
-                    ...additions.map((doc) => doc.id),
-                  ],
-                }
-              : s,
+          ? previous.sections
+          : previous.sections.map((s) =>
+              s.id === section.id
+                  ? {
+                    ...s,
+                    documentIds: [
+                      ...s.documentIds,
+                      ...additions.map((doc) => doc.id),
+                    ],
+                  }
+                  : s,
           ),
       documents: [
         ...previous.documents.map((doc) => updates.get(doc.id) ?? doc),
@@ -435,9 +436,9 @@ export class Store {
     for (const file of prepared)
       if (file.asset)
         await atomicWrite(
-          this.dataDir,
-          `assets/${file.asset.id}`,
-          file.asset.data,
+            this.dataDir,
+            `assets/${file.asset.id}`,
+            file.asset.data,
         );
     this.project = next;
     try {
@@ -457,8 +458,8 @@ export class Store {
     return { project: this.project, documents };
   }
   async deleteSection(
-    id: string,
-    documents: { id: string; version: number }[],
+      id: string,
+      documents: { id: string; version: number }[],
   ) {
     const section = this.project.sections.find((s) => s.id === id);
     if (!section) throw new AppError("Section not found.", 404);
@@ -466,16 +467,16 @@ export class Store {
       throw new AppError("Default sections cannot be deleted. You can edit or delete their documents.", 409);
     const current = this.project.documents.filter((d) => d.sectionId === id);
     if (
-      current.length !== documents.length ||
-      new Set(documents.map((d) => d.id)).size !== documents.length ||
-      current.some(
-        (doc) =>
-          !documents.some((d) => d.id === doc.id && d.version === doc.version),
-      )
+        current.length !== documents.length ||
+        new Set(documents.map((d) => d.id)).size !== documents.length ||
+        current.some(
+            (doc) =>
+                !documents.some((d) => d.id === doc.id && d.version === doc.version),
+        )
     )
       throw new AppError(
-        "This section changed elsewhere. Reload before deleting.",
-        409,
+          "This section changed elsewhere. Reload before deleting.",
+          409,
       );
     return this.removeDefinitions(current, id);
   }
@@ -515,11 +516,11 @@ export class Store {
     this.project = {
       ...previous,
       sections: previous.sections
-        .filter((s) => s.id !== sectionId)
-        .map((s) => ({
-          ...s,
-          documentIds: s.documentIds.filter((id) => !removed.has(id)),
-        })),
+          .filter((s) => s.id !== sectionId)
+          .map((s) => ({
+            ...s,
+            documentIds: s.documentIds.filter((id) => !removed.has(id)),
+          })),
       documents: previous.documents.filter((doc) => !removed.has(doc.id)),
     };
     const deleted: typeof backups = [];
@@ -547,9 +548,9 @@ export class Store {
     for (const section of this.project.sections) await this.ensureSkill(section.slug, section.displayName);
     for (const doc of this.project.documents)
       await atomicWrite(
-        this.dataDir,
-        `documents/${doc.id}.json`,
-        JSON.stringify(doc, null, 2),
+          this.dataDir,
+          `documents/${doc.id}.json`,
+          JSON.stringify(doc, null, 2),
       );
     for (const [file, contents] of Object.entries(markdown(this.project)))
       await atomicWrite(this.dataDir, `generated/${file}`, contents);
@@ -567,10 +568,10 @@ export class Store {
   }
   async snapshot(): Promise<Snapshot> {
     const project = structuredClone(this.project),
-      skills: Record<string, string> = {};
+        skills: Record<string, string> = {};
     for (const s of project.sections)
       skills[s.slug] = (
-        await readSafe(this.skillDir, `skills/${s.slug}/SKILL.md`)
+          await readSafe(this.skillDir, `skills/${s.slug}/SKILL.md`)
       ).toString();
     const md = markdown(project);
     return {
@@ -583,39 +584,39 @@ export class Store {
   async saveAppliedSnapshot(snapshot: Snapshot) {
     this.checkSnapshot(snapshot, snapshot.hash);
     await atomicWrite(
-      this.dataDir,
-      `snapshots/${snapshot.hash}.json`,
-      JSON.stringify(snapshot),
+        this.dataDir,
+        `snapshots/${snapshot.hash}.json`,
+        JSON.stringify(snapshot),
     );
   }
   private checkSnapshot(snapshot: Snapshot, expected: string) {
     if (
-      !/^[a-f0-9]{64}$/.test(expected) ||
-      snapshot.hash !== expected ||
-      hash(
-        JSON.stringify({
-          project: snapshot.project,
-          skills: snapshot.skills,
-          markdown: snapshot.markdown,
-        }),
-      ) !== expected
+        !/^[a-f0-9]{64}$/.test(expected) ||
+        snapshot.hash !== expected ||
+        hash(
+            JSON.stringify({
+              project: snapshot.project,
+              skills: snapshot.skills,
+              markdown: snapshot.markdown,
+            }),
+        ) !== expected
     )
       throw new AppError(
-        "Applied definitions failed their integrity check.",
-        409,
+          "Applied definitions failed their integrity check.",
+          409,
       );
     return snapshot;
   }
   async appliedSnapshot(
-    snapshotHash = this.state.appliedSnapshotHash,
+      snapshotHash = this.state.appliedSnapshotHash,
   ): Promise<Snapshot | null> {
     if (!snapshotHash) return null;
     if (!/^[a-f0-9]{64}$/.test(snapshotHash))
       throw new AppError("Invalid applied definition reference.", 409);
     try {
       return this.checkSnapshot(
-        await this.load<Snapshot>(`snapshots/${snapshotHash}.json`),
-        snapshotHash,
+          await this.load<Snapshot>(`snapshots/${snapshotHash}.json`),
+          snapshotHash,
       );
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
@@ -627,8 +628,8 @@ export class Store {
       throw e;
     });
     for (const file of entries
-      .filter((name) => /^[a-f0-9-]{36}\.json$/.test(name))
-      .sort()) {
+        .filter((name) => /^[a-f0-9-]{36}\.json$/.test(name))
+        .sort()) {
       const session = await this.load<PlanSession>(`plan-sessions/${file}`);
       if (session.candidateSnapshotHash === snapshotHash) {
         const snapshot = this.checkSnapshot(session.snapshot, snapshotHash);
@@ -636,8 +637,8 @@ export class Store {
       }
     }
     throw new AppError(
-      "The applied definition snapshot is missing. Restore its saved snapshot or plan session before applying changes.",
-      409,
+        "The applied definition snapshot is missing. Restore its saved snapshot or plan session before applying changes.",
+        409,
     );
   }
   async saveState() {
@@ -646,14 +647,14 @@ export class Store {
   async runs(): Promise<RunInfo[]> {
     const directory = await checkedPath(this.dataDir, "runs");
     const entries = await fs
-      .readdir(directory)
-      .catch((e: NodeJS.ErrnoException) => {
-        if (e.code === "ENOENT") return [];
-        throw e;
-      });
+        .readdir(directory)
+        .catch((e: NodeJS.ErrnoException) => {
+          if (e.code === "ENOENT") return [];
+          throw e;
+        });
     const history: RunInfo[] = [];
     for (const id of entries.filter(
-      (entry) => z.string().uuid().safeParse(entry).success,
+        (entry) => z.string().uuid().safeParse(entry).success,
     )) {
       try {
         const run = await this.run(id);
@@ -670,8 +671,8 @@ export class Store {
       }
     }
     return history.sort(
-      (a, b) =>
-        b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
+        (a, b) =>
+            b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
     );
   }
   async run(id: string): Promise<Run> {
@@ -706,7 +707,7 @@ export class Store {
   }
   async load<T>(relative: string): Promise<T> {
     return JSON.parse(
-      (await readSafe(this.dataDir, relative, false, Infinity)).toString(),
+        (await readSafe(this.dataDir, relative, false, Infinity)).toString(),
     );
   }
   async saveImage(base64: string) {
